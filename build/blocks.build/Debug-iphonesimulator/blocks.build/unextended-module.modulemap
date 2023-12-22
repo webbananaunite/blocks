@@ -1,0 +1,10 @@
+framework module blocks {
+  umbrella header "blocks.h"
+
+  export *
+  module * { export * }
+}
+
+module blocks.__Swift {
+    exclude header "blocks-Swift.h"
+}
