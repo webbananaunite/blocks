@@ -1,4 +1,4 @@
-# blocks & overlayNetwork & Testy
+# BlockChain Library Suite
 
 ## blocks について
 blocks は中本智さんの論文に基づいて開発されたiOSライブラリです。
@@ -20,6 +20,30 @@ MIT Laboratoryの分散ハッシュテーブルの実装である Chord 論文�
 Testy は住民基本台帳カードの代替として開発されています。
 
 blocksライブラリとoverlayNetworkライブラリの使用参考例として作成されたものです。
+
+## download
+
+blocks - ブロックチェーン・ライブラリα版 
+[ダウンロード](https://github.com/webbananaunite/blocks) 
+https://github.com/webbananaunite/blocks
+ 
+overlayNetwork - peer-to-peer分散ハッシュテーブル通信ライブラリα版 
+[ダウンロード](https://github.com/webbananaunite/overlayNetwork) 
+https://github.com/webbananaunite/overlayNetwork
+ 
+Testy - 住民基本台帳アプリα版 
+[ダウンロード](https://github.com/webbananaunite/Testy) 
+https://github.com/webbananaunite/Testy
+
+## How to Use
+1) ブロックチェーン・ライブラリ・スイート（３リポジトリ）をダウンロードし、あなたのアプリと同じディレクトリに保存します。  
+2) XcodeでTestyプロジェクトまたはあなたのアプリを開きます。  
+3) blocksプロジェクトのFrameworks and LibrariesにoverlayNetworkがあることを確認します。  
+4) TestyプロジェクトまたはあなたのアプリのプロジェクトのFrameworks and LibrariesにoverlayNetwork, blocksがあることを確認します。  
+5) overlayNetwork/Domain/Dht.swift 227行目にある{bootnodes}をあなたのローカルネットワークで最初に起動するデバイスのIPアドレスに変更します。  
+6) Xcodeでビルド、デバイスやシミュレータへのインストールを行います。  
+7) アプリを起動し、"生体認証"ボタンをタップします。  
+8) DHCテーブルの初期化が完了するまで8分ほど待ちます。  
 
 ## ライセンス
 blocks & overlayNetwork & Testy は MIT Licenseで公開されています。  

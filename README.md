@@ -1,4 +1,4 @@
-# blocks & overlayNetwork & Testy
+# BlockChain Library Suite
 [日本語](READMEjp.md)
 
 ## about blocks
@@ -18,6 +18,29 @@ Nothing depending other libraries.
 Testy is alternative to Basic Resident Register Card.  
 
 It is made as Reference iOS App based on blocks and overlayNetwork libraries.
+
+## download
+blocks - BlockChain Library α version 
+[download](https://github.com/webbananaunite/blocks) 
+https://github.com/webbananaunite/blocks
+ 
+overlayNetwork - Peer-to-Peer Overlay Network Communicate Library α version 
+[download](https://github.com/webbananaunite/overlayNetwork) 
+https://github.com/webbananaunite/overlayNetwork
+ 
+Testy - Basic Resident Register Application α version 
+[download](https://github.com/webbananaunite/Testy) 
+https://github.com/webbananaunite/Testy
+
+## How to Use
+1) Download The BlockChain Library Suite's 3 Repository and Your App Project files in Same Directory.  
+2) Open Testy Project or Your App Project in Xcode.  
+3) Be sure there overlayNetwork at Frameworks and Libraries in blocks Project.  
+4) Be sure there overlayNetwork, blocks at Frameworks and Libraries in Your App Project or Testy Project.  
+5) Modify {bootnodes} to First Booting Device's IP depending your local network in overlayNetwork/Domain/Dht.swift l.227  
+6) Xcode Build and Install Devices or Simulators.  
+7) Open App and Tap "生体認証" Button.  
+8) Wait Around 8 min. up to Done Initialize DHC table.  
 
 ## license
 blocks library & overlayNetwork library & Testy is published under MIT License,  
