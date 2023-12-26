@@ -1,5 +1,0 @@
-version: "Apple Swift version 5.2.4 (swiftlang-1103.0.32.9 clang-1103.0.32.53)"
-options: "289ed91fef7bdf5b600e17d213c0546c"
-build_time: [1590555578, 770952000]
-inputs:
-  "/Users/yoichi/Documents/blocks/blocks/Blocks.swift": [1590540599, 375395282]
