@@ -1,0 +1,14 @@
+{
+  "pins" : [
+    {
+      "identity" : "overlaynetwork",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/webbananaunite/overlayNetwork",
+      "state" : {
+        "revision" : "c3f2746e87c18ecd71990aedb80336101275ab42",
+        "version" : "0.0.1"
+      }
+    }
+  ],
+  "version" : 2
+}
