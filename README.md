@@ -20,27 +20,35 @@ Testy is alternative to Basic Resident Register Card.
 It is made as Reference iOS App based on blocks and overlayNetwork libraries.
 
 ## download
-blocks - BlockChain Library α version 
-[download](https://github.com/webbananaunite/blocks) 
-https://github.com/webbananaunite/blocks
+blocks - BlockChain Library α version  
+[download](https://github.com/webbananaunite/blocks)  
+https://github.com/webbananaunite/blocks  
  
-overlayNetwork - Peer-to-Peer Overlay Network Communicate Library α version 
-[download](https://github.com/webbananaunite/overlayNetwork) 
-https://github.com/webbananaunite/overlayNetwork
+overlayNetwork - Peer-to-Peer Overlay Network Communicate Library α version  
+[download](https://github.com/webbananaunite/overlayNetwork)  
+https://github.com/webbananaunite/overlayNetwork  
  
-Testy - Basic Resident Register Application α version 
-[download](https://github.com/webbananaunite/Testy) 
-https://github.com/webbananaunite/Testy
+Testy - Basic Resident Register Application α version  
+[download](https://github.com/webbananaunite/Testy)  
+https://github.com/webbananaunite/Testy  
 
 ## How to Use
-1) Download The BlockChain Library Suite's 3 Repository and Your App Project files in Same Directory.  
-2) Open Testy Project or Your App Project in Xcode.  
-3) Be sure there overlayNetwork at Frameworks and Libraries in blocks Project.  
-4) Be sure there overlayNetwork, blocks at Frameworks and Libraries in Your App Project or Testy Project.  
-5) Modify {bootnodes} to First Booting Device's IP depending your local network in overlayNetwork/Domain/Dht.swift l.227  
-6) Xcode Build and Install Devices or Simulators.  
-7) Open App and Tap "生体認証" Button.  
-8) Wait Around 8 min. up to Done Initialize DHC table.  
+1) Open Testy Project or Your App Project in Xcode.  
+2) File - Add Packages
+3) Input following blocks URL to Search or Enter Package URL Box on UpRight.
+https://github.com/webbananaunite/blocks
+4) You see blocks library's README.md.
+5) Tap Add Package Button on DownRight.
+6) Make Sure there Added blocks library in Project - Frameworks, Libraries and Embeded Content.
+7) Make Sure there Added The BlockChain Library Suite(blocks and overlayNetwork libraries) at Package Dependencies in Project Navigator in Xcode.
+8) Modify {bootnodes} to First Booting Device's IP depending your local network in overlayNetwork/Domain/Dht.swift l.227  
+* Alpha Version cause Runnable in Your Local Network Only.  
+9) Xcode Build and Install Devices or Simulators.  
+10) Open App and Tap "生体認証" Button.  
+11) Wait Around 8 min. up to Done Initialize DHC table.  
+
+## limitations
+Alpha Version cause Runnable in Your Local Network Only.  
 
 ## license
 blocks library & overlayNetwork library & Testy is published under MIT License,  

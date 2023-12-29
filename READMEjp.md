@@ -23,27 +23,35 @@ blocksライブラリとoverlayNetworkライブラリの使用参考例として
 
 ## download
 
-blocks - ブロックチェーン・ライブラリα版 
-[ダウンロード](https://github.com/webbananaunite/blocks) 
-https://github.com/webbananaunite/blocks
+blocks - ブロックチェーン・ライブラリα版  
+[ダウンロード](https://github.com/webbananaunite/blocks)  
+https://github.com/webbananaunite/blocks  
  
-overlayNetwork - peer-to-peer分散ハッシュテーブル通信ライブラリα版 
-[ダウンロード](https://github.com/webbananaunite/overlayNetwork) 
-https://github.com/webbananaunite/overlayNetwork
+overlayNetwork - peer-to-peer分散ハッシュテーブル通信ライブラリα版  
+[ダウンロード](https://github.com/webbananaunite/overlayNetwork)  
+https://github.com/webbananaunite/overlayNetwork  
  
-Testy - 住民基本台帳アプリα版 
-[ダウンロード](https://github.com/webbananaunite/Testy) 
-https://github.com/webbananaunite/Testy
+Testy - 住民基本台帳アプリα版  
+[ダウンロード](https://github.com/webbananaunite/Testy)  
+https://github.com/webbananaunite/Testy  
 
-## How to Use
-1) ブロックチェーン・ライブラリ・スイート（３リポジトリ）をダウンロードし、あなたのアプリと同じディレクトリに保存します。  
-2) XcodeでTestyプロジェクトまたはあなたのアプリを開きます。  
-3) blocksプロジェクトのFrameworks and LibrariesにoverlayNetworkがあることを確認します。  
-4) TestyプロジェクトまたはあなたのアプリのプロジェクトのFrameworks and LibrariesにoverlayNetwork, blocksがあることを確認します。  
-5) overlayNetwork/Domain/Dht.swift 227行目にある{bootnodes}をあなたのローカルネットワークで最初に起動するデバイスのIPアドレスに変更します。  
-6) Xcodeでビルド、デバイスやシミュレータへのインストールを行います。  
-7) アプリを起動し、"生体認証"ボタンをタップします。  
-8) DHCテーブルの初期化が完了するまで8分ほど待ちます。  
+## ライブラリ利用方法
+1) XcodeでTestyプロジェクトまたはあなたのアプリを開きます。  
+2) File - Add Packages
+3) 右上のSearch or Enter Package URLに次のblocks URLを入力します。
+https://github.com/webbananaunite/blocks
+4) blocks libraryのREADME.mdが表示されます。
+5) 右下のAdd Packageボタンをタップします。
+6) TestyプロジェクトまたはあなたのアプリのプロジェクトのFrameworks, Libraries and Embeded Contentにblocks libraryがあることを確認します。 
+7) TestyプロジェクトまたはあなたのアプリのプロジェクトのProject NavigatorのPackage Dependenciesにブロックチェーン・ライブラリ・スイート(blocks and overlayNetwork libraries)があることを確認します。
+8) overlayNetwork/Domain/Dht.swift 227行目にある{bootnodes}をあなたのローカルネットワークで最初に起動するデバイスのIPアドレスに変更します。  
+* アルファ版ではローカルネットワーク内でのみ動作可能です。
+9) Xcodeでビルド、デバイスやシミュレータへのインストールを行います。  
+10) アプリを起動し、"生体認証"ボタンをタップします。  
+11) DHCテーブルの初期化が完了するまで8分ほど待ちます。  
+
+## 制限事項
+アルファ版では、ローカルネットワーク内でのみ動作可能です。
 
 ## ライセンス
 blocks & overlayNetwork & Testy は MIT Licenseで公開されています。  
