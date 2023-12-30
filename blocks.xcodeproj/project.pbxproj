@@ -3,7 +3,7 @@
 	archiveVersion = 1;
 	classes = {
 	};
-	objectVersion = 50;
+	objectVersion = 52;
 	objects = {
 
 /* Begin PBXAggregateTarget section */
@@ -32,6 +32,7 @@
 		98501C642A8EF69C00B5064B /* overlayNetwork.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 98501C602A8EF54E00B5064B /* overlayNetwork.framework */; settings = {ATTRIBUTES = (Required, ); }; };
 		98501C652A8EF69C00B5064B /* overlayNetwork.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 98501C602A8EF54E00B5064B /* overlayNetwork.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		9857F3BD2B401194006E365A /* Blocks.h in Headers */ = {isa = PBXBuildFile; fileRef = 9857F3BC2B401194006E365A /* Blocks.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		9857F3C32B401211006E365A /* overlayNetwork in Frameworks */ = {isa = PBXBuildFile; productRef = 9857F3C22B401211006E365A /* overlayNetwork */; };
 		9865B3B32AFDFD6D00F29638 /* UnsafeMutableRawBufferPointer+.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9865B3B12AFDF9C300F29638 /* UnsafeMutableRawBufferPointer+.swift */; };
 		98669C152AF4609500BF76E2 /* String+.swift in Sources */ = {isa = PBXBuildFile; fileRef = 98669C142AF4609500BF76E2 /* String+.swift */; };
 		98669C182AF4688300BF76E2 /* Dictionary+.swift in Sources */ = {isa = PBXBuildFile; fileRef = 98669C172AF4688300BF76E2 /* Dictionary+.swift */; };
@@ -183,6 +184,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				9857F3C32B401211006E365A /* overlayNetwork in Frameworks */,
 				98501C642A8EF69C00B5064B /* overlayNetwork.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -431,6 +433,7 @@
 			);
 			name = blocks;
 			packageProductDependencies = (
+				9857F3C22B401211006E365A /* overlayNetwork */,
 			);
 			productName = blocks;
 			productReference = 98815235247DE32B00C4C791 /* blocks.framework */;
@@ -467,6 +470,7 @@
 			);
 			mainGroup = 9881522B247DE32B00C4C791;
 			packageReferences = (
+				9857F3C12B401211006E365A /* XCRemoteSwiftPackageReference "overlayNetwork" */,
 			);
 			productRefGroup = 98815236247DE32B00C4C791 /* Products */;
 			projectDirPath = "";
@@ -910,6 +914,25 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		9857F3C12B401211006E365A /* XCRemoteSwiftPackageReference "overlayNetwork" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/webbananaunite/overlayNetwork";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 0.0.2;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		9857F3C22B401211006E365A /* overlayNetwork */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 9857F3C12B401211006E365A /* XCRemoteSwiftPackageReference "overlayNetwork" */;
+			productName = overlayNetwork;
+		};
+/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = 9881522C247DE32B00C4C791 /* Project object */;
 }
