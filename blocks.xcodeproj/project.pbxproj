@@ -127,6 +127,7 @@
 		98501C5D2A8EF54E00B5064B /* chord_sigcomm.pdf */ = {isa = PBXFileReference; lastKnownFileType = image.pdf; path = chord_sigcomm.pdf; sourceTree = "<group>"; };
 		9857F3BA2B401194006E365A /* Blocks.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Blocks.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		9857F3BC2B401194006E365A /* Blocks.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = Blocks.h; sourceTree = "<group>"; };
+		9857F3C42B401247006E365A /* libresolv.tbd */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.text-based-dylib-definition"; name = libresolv.tbd; path = Platforms/MacOSX.platform/Developer/SDKs/MacOSX13.3.sdk/usr/lib/libresolv.tbd; sourceTree = DEVELOPER_DIR; };
 		9865B3B12AFDF9C300F29638 /* UnsafeMutableRawBufferPointer+.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "UnsafeMutableRawBufferPointer+.swift"; sourceTree = "<group>"; };
 		98669C142AF4609500BF76E2 /* String+.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "String+.swift"; sourceTree = "<group>"; };
 		98669C172AF4688300BF76E2 /* Dictionary+.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Dictionary+.swift"; sourceTree = "<group>"; };
@@ -325,6 +326,7 @@
 		986A89592A8C5C6500EA216C /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				9857F3C42B401247006E365A /* libresolv.tbd */,
 				98501C412A8EF54E00B5064B /* overlayNetwork */,
 				986A895A2A8C5C6500EA216C /* overlayNetwork.framework */,
 			);
