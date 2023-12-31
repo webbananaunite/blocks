@@ -33,7 +33,7 @@ Testy - Basic Resident Register Application α version
 https://github.com/webbananaunite/Testy  
 
 ## How to Use
-### Swift Package (Recommended)
+### Swift Package (Recommended.)
 1) Open Testy Project or Your App Project in Xcode.  
 2) File - Add Packages
 3) Input following blocks URL to Search or Enter Package URL Box on UpRight.

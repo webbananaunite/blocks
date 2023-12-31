@@ -36,7 +36,7 @@ Testy - 住民基本台帳アプリα版
 https://github.com/webbananaunite/Testy  
 
 ## ライブラリ利用方法
-### Swift Package (推奨)
+### Swift Package ( 推奨 )
 1) XcodeでTestyプロジェクトまたはあなたのアプリを開きます。  
 2) File - Add Packages
 3) 右上のSearch or Enter Package URLに次のblocks URLを入力します。
