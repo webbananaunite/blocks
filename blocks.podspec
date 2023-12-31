@@ -26,10 +26,8 @@ Pod::Spec.new do |spec|
   #   * Finally, don't worry about the indent, CocoaPods strips it!
   spec.description  = <<-DESC
 blocks is a iOS library as introduce BlockChain System to your Apps, based on Satoshi Nakamoto's Paper,
-for various purpose (*** Exclude exchangeable digital currency in cryptocurrency exchange ***) iOS App.  
-
+for various purpose (*** Exclude exchangeable digital currency in cryptocurrency exchange ***) iOS App.
 Characteristically, blocks is pre-contained Activities in Social System (Government, Public, Private Sectors) as Birth Registration, Residential Record, Guarantor.
-
 It is depend on overlayNetwork library.
                    DESC
 
@@ -86,7 +84,7 @@ It is depend on overlayNetwork library.
   #  Supports git, hg, bzr, svn and HTTP.
   #
 
-  spec.source       = { :git => "https://github.com/webbananaunite/blocks.git", :tag => "0.0.2c" }
+  spec.source       = { :git => "https://github.com/webbananaunite/blocks.git", :tag => "0.0.2p" }
 
 
   # ――― Source Code ―――――――――――――――――――――――――――――――――――――――――――――――――――――――――――――― #
@@ -123,10 +121,11 @@ It is depend on overlayNetwork library.
   #  the lib prefix of their name.
   #
 
-  spec.framework  = "overlayNetwork"
+  # spec.framework  = "overlayNetwork"
+  # spec.framework  = "Pods_Blocks"
   # spec.frameworks = "SomeFramework", "AnotherFramework"
 
-  spec.library   = "resolv"
+  # spec.library   = "resolv"
   # spec.libraries = "iconv", "xml2"
 
 
@@ -140,5 +139,6 @@ It is depend on overlayNetwork library.
 
   # spec.xcconfig = { "HEADER_SEARCH_PATHS" => "$(SDKROOT)/usr/include/libxml2" }
   # spec.dependency "JSONKit", "~> 1.4"
+  spec.dependency "overlayNetwork"
 
 end
