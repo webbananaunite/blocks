@@ -3,56 +3,24 @@
 	archiveVersion = 1;
 	classes = {
 	};
-	objectVersion = 52;
+	objectVersion = 50;
 	objects = {
 
 /* Begin PBXBuildFile section */
 		9857F3BD2B401194006E365A /* Blocks.h in Headers */ = {isa = PBXBuildFile; fileRef = 9857F3BC2B401194006E365A /* Blocks.h */; settings = {ATTRIBUTES = (Public, ); }; };
 /* End PBXBuildFile section */
 
-/* Begin PBXContainerItemProxy section */
-		98501C5F2A8EF54E00B5064B /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = 98501C5A2A8EF54E00B5064B /* overlayNetwork.xcodeproj */;
-			proxyType = 2;
-			remoteGlobalIDString = 986A89182A8C4EDF00EA216C;
-			remoteInfo = overlayNetwork;
-		};
-/* End PBXContainerItemProxy section */
-
 /* Begin PBXFileReference section */
 		981C06482A8C9B3000D39480 /* Node.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Node.swift; sourceTree = "<group>"; };
 		983358F72B3A595000DBAAE1 /* README.md */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = SOURCE_ROOT; };
 		983358F92B3A595000DBAAE1 /* LICENSE */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = LICENSE; sourceTree = SOURCE_ROOT; };
 		983358FA2B3A595000DBAAE1 /* READMEjp.md */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = net.daringfireball.markdown; path = READMEjp.md; sourceTree = SOURCE_ROOT; };
-		9836A9602AB6802400B310C6 /* Int64+.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Int64+.swift"; sourceTree = "<group>"; };
 		98397887249C954B00002D1C /* Log.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Log.swift; sourceTree = "<group>"; };
 		9839FE4C25107BF100010C83 /* Taker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Taker.swift; sourceTree = "<group>"; };
 		983EC202248B71220075A5CF /* Transaction.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Transaction.swift; sourceTree = "<group>"; };
 		983F1E102AF86BF1008AE1E2 /* Decimal+.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Decimal+.swift"; sourceTree = "<group>"; };
-		98501C432A8EF54E00B5064B /* overlayNetwork.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = overlayNetwork.h; sourceTree = "<group>"; };
-		98501C442A8EF54E00B5064B /* overlayNetwork.docc */ = {isa = PBXFileReference; lastKnownFileType = folder.documentationcatalog; path = overlayNetwork.docc; sourceTree = "<group>"; };
-		98501C462A8EF54E00B5064B /* Log.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Log.swift; sourceTree = "<group>"; };
-		98501C472A8EF54E00B5064B /* Dns.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = Dns.mm; sourceTree = "<group>"; };
-		98501C482A8EF54E00B5064B /* Dns.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = Dns.h; sourceTree = "<group>"; };
-		98501C4A2A8EF54E00B5064B /* Dht.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Dht.swift; sourceTree = "<group>"; };
-		98501C4B2A8EF54E00B5064B /* Streaming.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Streaming.swift; sourceTree = "<group>"; };
-		98501C4E2A8EF54E00B5064B /* String+.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "String+.swift"; sourceTree = "<group>"; };
-		98501C4F2A8EF54E00B5064B /* Data+.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Data+.swift"; sourceTree = "<group>"; };
-		98501C502A8EF54E00B5064B /* Stream+.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Stream+.swift"; sourceTree = "<group>"; };
-		98501C512A8EF54E00B5064B /* IpaddressV4.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IpaddressV4.swift; sourceTree = "<group>"; };
-		98501C522A8EF54E00B5064B /* Time.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Time.swift; sourceTree = "<group>"; };
-		98501C532A8EF54E00B5064B /* AcceptStreaming.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AcceptStreaming.swift; sourceTree = "<group>"; };
-		98501C542A8EF54E00B5064B /* Resource.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Resource.swift; sourceTree = "<group>"; };
-		98501C552A8EF54E00B5064B /* Command.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Command.swift; sourceTree = "<group>"; };
-		98501C562A8EF54E00B5064B /* Finger.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Finger.swift; sourceTree = "<group>"; };
-		98501C572A8EF54E00B5064B /* Queue.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Queue.swift; sourceTree = "<group>"; };
-		98501C582A8EF54E00B5064B /* Node.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Node.swift; sourceTree = "<group>"; };
-		98501C5A2A8EF54E00B5064B /* overlayNetwork.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; path = overlayNetwork.xcodeproj; sourceTree = "<group>"; };
-		98501C5D2A8EF54E00B5064B /* chord_sigcomm.pdf */ = {isa = PBXFileReference; lastKnownFileType = image.pdf; path = chord_sigcomm.pdf; sourceTree = "<group>"; };
 		9857F3BA2B401194006E365A /* Blocks.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Blocks.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		9857F3BC2B401194006E365A /* Blocks.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = Blocks.h; sourceTree = "<group>"; };
-		9857F3C42B401247006E365A /* libresolv.tbd */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.text-based-dylib-definition"; name = libresolv.tbd; path = Platforms/MacOSX.platform/Developer/SDKs/MacOSX13.3.sdk/usr/lib/libresolv.tbd; sourceTree = DEVELOPER_DIR; };
 		9865B3B12AFDF9C300F29638 /* UnsafeMutableRawBufferPointer+.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "UnsafeMutableRawBufferPointer+.swift"; sourceTree = "<group>"; };
 		98669C142AF4609500BF76E2 /* String+.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "String+.swift"; sourceTree = "<group>"; };
 		98669C172AF4688300BF76E2 /* Dictionary+.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Dictionary+.swift"; sourceTree = "<group>"; };
@@ -64,12 +32,10 @@
 		986A171C2AD8CEFF00E416D0 /* Claim.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Claim.swift; sourceTree = "<group>"; };
 		986A171F2AD9023900E416D0 /* Pay.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Pay.swift; sourceTree = "<group>"; };
 		986A89532A8C558B00EA216C /* Command.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Command.swift; sourceTree = "<group>"; };
-		986A895A2A8C5C6500EA216C /* overlayNetwork.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; path = overlayNetwork.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		986BE3292AC689A400EF0F3F /* Array+.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Array+.swift"; sourceTree = "<group>"; };
 		986C8D7A2AB9257F002F0C1C /* Data+.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Data+.swift"; sourceTree = "<group>"; };
 		986D85372AB7BA4D001DFEB4 /* Nonce.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Nonce.swift; sourceTree = "<group>"; };
 		986DAF40248E116100E64982 /* Person.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Person.swift; sourceTree = "<group>"; };
-		9872A5872B2ACCF500A58A7F /* OverlayNetworkBinaryAddress.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OverlayNetworkBinaryAddress.swift; sourceTree = "<group>"; };
 		987509242B32666800B71D34 /* BlockIdentification.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BlockIdentification.swift; sourceTree = "<group>"; };
 		987509272B326AFF00B71D34 /* TransactionIdentification.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TransactionIdentification.swift; sourceTree = "<group>"; };
 		987509292B32709E00B71D34 /* PublicKey.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PublicKey.swift; sourceTree = "<group>"; };
@@ -82,8 +48,6 @@
 		98815238247DE32B00C4C791 /* blocks.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = blocks.h; sourceTree = "<group>"; };
 		98815239247DE32B00C4C791 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		98815240247DE5D100C4C791 /* Blocks.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Blocks.swift; sourceTree = "<group>"; };
-		989D60822AAF18A8004C6EF0 /* PeerConnection.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PeerConnection.swift; sourceTree = "<group>"; };
-		989D60842AAF19DD004C6EF0 /* PeerListener.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PeerListener.swift; sourceTree = "<group>"; };
 		98B76FED2ABC40A300D4DE6D /* Shader.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = Shader.metal; sourceTree = "<group>"; };
 		98C5592D2AC1468600A79B0B /* Hash.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = Hash.metal; sourceTree = "<group>"; };
 		98D1EDB12A8EED11001EB705 /* OverlayNetwork.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OverlayNetwork.swift; sourceTree = "<group>"; };
@@ -158,78 +122,6 @@
 			path = Domain;
 			sourceTree = "<group>";
 		};
-		98501C412A8EF54E00B5064B /* overlayNetwork */ = {
-			isa = PBXGroup;
-			children = (
-				98501C422A8EF54E00B5064B /* overlayNetwork */,
-				98501C5A2A8EF54E00B5064B /* overlayNetwork.xcodeproj */,
-				98501C5D2A8EF54E00B5064B /* chord_sigcomm.pdf */,
-			);
-			name = overlayNetwork;
-			path = ../overlayNetwork;
-			sourceTree = "<group>";
-		};
-		98501C422A8EF54E00B5064B /* overlayNetwork */ = {
-			isa = PBXGroup;
-			children = (
-				98501C432A8EF54E00B5064B /* overlayNetwork.h */,
-				98501C442A8EF54E00B5064B /* overlayNetwork.docc */,
-				98501C452A8EF54E00B5064B /* DomainService */,
-				98501C492A8EF54E00B5064B /* Domain */,
-			);
-			path = overlayNetwork;
-			sourceTree = "<group>";
-		};
-		98501C452A8EF54E00B5064B /* DomainService */ = {
-			isa = PBXGroup;
-			children = (
-				98501C462A8EF54E00B5064B /* Log.swift */,
-				98501C472A8EF54E00B5064B /* Dns.mm */,
-				98501C482A8EF54E00B5064B /* Dns.h */,
-			);
-			path = DomainService;
-			sourceTree = "<group>";
-		};
-		98501C492A8EF54E00B5064B /* Domain */ = {
-			isa = PBXGroup;
-			children = (
-				98501C4A2A8EF54E00B5064B /* Dht.swift */,
-				98501C4B2A8EF54E00B5064B /* Streaming.swift */,
-				98501C4C2A8EF54E00B5064B /* Extension */,
-				98501C512A8EF54E00B5064B /* IpaddressV4.swift */,
-				98501C522A8EF54E00B5064B /* Time.swift */,
-				98501C532A8EF54E00B5064B /* AcceptStreaming.swift */,
-				98501C542A8EF54E00B5064B /* Resource.swift */,
-				98501C552A8EF54E00B5064B /* Command.swift */,
-				98501C562A8EF54E00B5064B /* Finger.swift */,
-				98501C572A8EF54E00B5064B /* Queue.swift */,
-				98501C582A8EF54E00B5064B /* Node.swift */,
-				989D60822AAF18A8004C6EF0 /* PeerConnection.swift */,
-				989D60842AAF19DD004C6EF0 /* PeerListener.swift */,
-				9872A5872B2ACCF500A58A7F /* OverlayNetworkBinaryAddress.swift */,
-			);
-			path = Domain;
-			sourceTree = "<group>";
-		};
-		98501C4C2A8EF54E00B5064B /* Extension */ = {
-			isa = PBXGroup;
-			children = (
-				98501C4E2A8EF54E00B5064B /* String+.swift */,
-				98501C4F2A8EF54E00B5064B /* Data+.swift */,
-				98501C502A8EF54E00B5064B /* Stream+.swift */,
-				9836A9602AB6802400B310C6 /* Int64+.swift */,
-			);
-			path = Extension;
-			sourceTree = "<group>";
-		};
-		98501C5B2A8EF54E00B5064B /* Products */ = {
-			isa = PBXGroup;
-			children = (
-				98501C602A8EF54E00B5064B /* overlayNetwork.framework */,
-			);
-			name = Products;
-			sourceTree = "<group>";
-		};
 		9857F3BB2B401194006E365A /* Blocks */ = {
 			isa = PBXGroup;
 			children = (
@@ -241,9 +133,6 @@
 		986A89592A8C5C6500EA216C /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
-				9857F3C42B401247006E365A /* libresolv.tbd */,
-				98501C412A8EF54E00B5064B /* overlayNetwork */,
-				986A895A2A8C5C6500EA216C /* overlayNetwork.framework */,
 			);
 			name = Frameworks;
 			sourceTree = "<group>";
@@ -349,32 +238,15 @@
 			);
 			mainGroup = 9881522B247DE32B00C4C791;
 			packageReferences = (
-				9857F3C12B401211006E365A /* XCRemoteSwiftPackageReference "overlayNetwork" */,
 			);
 			productRefGroup = 98815236247DE32B00C4C791 /* Products */;
 			projectDirPath = "";
-			projectReferences = (
-				{
-					ProductGroup = 98501C5B2A8EF54E00B5064B /* Products */;
-					ProjectRef = 98501C5A2A8EF54E00B5064B /* overlayNetwork.xcodeproj */;
-				},
-			);
 			projectRoot = "";
 			targets = (
 				9857F3B92B401194006E365A /* Blocks */,
 			);
 		};
 /* End PBXProject section */
-
-/* Begin PBXReferenceProxy section */
-		98501C602A8EF54E00B5064B /* overlayNetwork.framework */ = {
-			isa = PBXReferenceProxy;
-			fileType = wrapper.framework;
-			path = overlayNetwork.framework;
-			remoteRef = 98501C5F2A8EF54E00B5064B /* PBXContainerItemProxy */;
-			sourceTree = BUILT_PRODUCTS_DIR;
-		};
-/* End PBXReferenceProxy section */
 
 /* Begin PBXResourcesBuildPhase section */
 		9857F3B82B401194006E365A /* Resources */ = {
@@ -611,17 +483,6 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
-
-/* Begin XCRemoteSwiftPackageReference section */
-		9857F3C12B401211006E365A /* XCRemoteSwiftPackageReference "overlayNetwork" */ = {
-			isa = XCRemoteSwiftPackageReference;
-			repositoryURL = "https://github.com/webbananaunite/overlayNetwork";
-			requirement = {
-				kind = upToNextMajorVersion;
-				minimumVersion = 0.0.2;
-			};
-		};
-/* End XCRemoteSwiftPackageReference section */
 	};
 	rootObject = 9881522C247DE32B00C4C791 /* Project object */;
 }
