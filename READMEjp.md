@@ -36,6 +36,7 @@ Testy - 住民基本台帳アプリα版
 https://github.com/webbananaunite/Testy  
 
 ## ライブラリ利用方法
+### Swift Package (推奨)
 1) XcodeでTestyプロジェクトまたはあなたのアプリを開きます。  
 2) File - Add Packages
 3) 右上のSearch or Enter Package URLに次のblocks URLを入力します。
@@ -49,6 +50,22 @@ https://github.com/webbananaunite/blocks
 9) Xcodeでビルド、デバイスやシミュレータへのインストールを行います。  
 10) アプリを起動し、"生体認証"ボタンをタップします。  
 11) DHCテーブルの初期化が完了するまで8分ほど待ちます。  
+### Carthage
+- $ cd your project directory
+- $ echo 'github "webbananaunite/blocks" "carthage"' > Cartfile
+- $ carthage update --use-xcframeworks
+### CocoaPods
+- $ cd your project directory
+- $ pod init
+- $ vi Podfile
+```
+target 'target name in your App proj' do
+  use_frameworks!
+	pod 'blocks-blockchain'
+end
+```
+- $ pod install
+- Open your app.xcworkspace created by pod.
 
 ## 制限事項
 アルファ版では、ローカルネットワーク内でのみ動作可能です。

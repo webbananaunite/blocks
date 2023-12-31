@@ -33,6 +33,7 @@ Testy - Basic Resident Register Application α version
 https://github.com/webbananaunite/Testy  
 
 ## How to Use
+### Swift Package (Recommended)
 1) Open Testy Project or Your App Project in Xcode.  
 2) File - Add Packages
 3) Input following blocks URL to Search or Enter Package URL Box on UpRight.
@@ -46,6 +47,22 @@ https://github.com/webbananaunite/blocks
 9) Xcode Build and Install Devices or Simulators.  
 10) Open App and Tap "生体認証" Button.  
 11) Wait Around 8 min. up to Done Initialize DHC table.  
+### Carthage
+- $ cd your project directory
+- $ echo 'github "webbananaunite/blocks" "carthage"' > Cartfile
+- $ carthage update --use-xcframeworks
+### CocoaPods
+- $ cd your project directory
+- $ pod init
+- $ vi Podfile
+```
+target 'target name in your App proj' do
+  use_frameworks!
+	pod 'blocks-blockchain'
+end
+```
+- $ pod install
+- Open your app.xcworkspace created by pod.
 
 ## limitations
 Alpha Version cause Runnable in Your Local Network Only.  
