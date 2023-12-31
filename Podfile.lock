@@ -1,0 +1,16 @@
+PODS:
+  - overlayNetwork (0.0.2)
+
+DEPENDENCIES:
+  - overlayNetwork
+
+SPEC REPOS:
+  trunk:
+    - overlayNetwork
+
+SPEC CHECKSUMS:
+  overlayNetwork: 0b1ba9024b373f5a28a045ef759c37ce9c294f7b
+
+PODFILE CHECKSUM: dbfa725e1805e58e1fb242893954ed0bcfa793c1
+
+COCOAPODS: 1.14.3
