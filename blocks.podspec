@@ -15,7 +15,7 @@ Pod::Spec.new do |spec|
   #  summary should be tweet-length, and the description more in depth.
   #
 
-  spec.name         = "blocks"
+  spec.name         = "blocks-blockchain"
   spec.version      = "0.0.2"
   spec.summary      = "introduce BlockChain System to your Apps, based on Satoshi Nakamoto's Paper, for various purpose iOS App."
 
