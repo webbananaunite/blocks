@@ -280,6 +280,8 @@ public enum Command: String, CommandProtocol {
                     /*
                      As Protocol extension can not define settable property,
                      Do Downcast to Node.
+                     
+                     #now make sure find taker's transaction in chained block in Birth View.
                      */
                     (node as! Node).book.signature = signatureForBlockAsData
                     Log("-- \((node as! Node).book.blocks.count)")
