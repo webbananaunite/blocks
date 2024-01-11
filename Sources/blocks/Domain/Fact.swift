@@ -18,7 +18,16 @@ public enum ClaimOnFact: String, Claim {
             return "aReply"
         }
     }
-    
+
+    public var rawValueWithAbstract: String? {
+        switch self {
+        case .a:
+            return "..."
+        case .aReply:
+            return "..."
+        }
+    }
+
     public struct Object: ClaimObject {
         public let destination: OverlayNetworkAddressAsHexString
         public let publicKeyForEncryption: PublicKeyForEncryption?

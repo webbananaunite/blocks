@@ -17,6 +17,7 @@ public protocol Claim {
     
     init?(rawValue: String)
     var rawValue: String? { get }
+    var rawValueWithAbstract: String? { get }
     func object(content: String) -> ClaimObject?
 
     var replyClaim: String { get }

@@ -85,6 +85,25 @@ public enum ClaimOnPerson: String, Claim {
         }
     }
 
+    public var rawValueWithAbstract: String? {
+        switch self {
+        case .findTaker:
+            return "Find Who be a Reference for Join. (FT)"
+        case .findTakerReply:
+            return "Reply for Find Reference. (FT_)"
+        case .askForTaker:
+            return "Ask for Reference. (AT)"
+        case .askForTakerReply:
+            return "Reply for Ask for Reference. (AT_)"
+        case .demandBasicIncome:
+            return "Demand Basic Income. (BI)"
+        case .demandBasicIncomeReply:
+            return "Reply for Demand Basic Income. (BI_)"
+        case .born:
+            return "Born (BN)"
+        }
+    }
+
     public struct Object: ClaimObject {
         public let destination: OverlayNetworkAddressAsHexString
         public let publicKeyForEncryption: PublicKeyForEncryption?

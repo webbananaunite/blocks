@@ -41,6 +41,15 @@ public enum ClaimOnMail: String, Claim {
         }
     }
     
+    public var rawValueWithAbstract: String? {
+        switch self {
+        case .mail:
+            return "Message was Sent."
+        case .mailReply:
+            return "Reply to Message."
+        }
+    }
+
     public static func rawValue(_ claim: ClaimOnMail) -> String {
         switch claim {
         case .mail:

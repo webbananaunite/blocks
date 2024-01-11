@@ -23,6 +23,15 @@ public enum ClaimOnPay: String, Claim {
         }
     }
     
+    public var rawValueWithAbstract: String? {
+        switch self {
+        case .bookerFee:
+            return "Fee for Booker."
+        case .bookerFeeReply:
+            return "Reply for Fee for Booker."
+        }
+    }
+
     public var fee: Decimal {
         switch self {
         case .bookerFee:
