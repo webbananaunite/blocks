@@ -32,7 +32,7 @@ public enum TransactionType: String {
         }
     }
     
-    public func construct(claim: any Claim, claimObject: any ClaimObject, makerDhtAddressAsHexString: OverlayNetworkAddressAsHexString, publicKey: PublicKey?, signature: Signature? = nil, book: Book, signer: Signer, peerSigner: Signer? = nil, transactionId: TransactionIdentification? = nil, date: Date? = nil, debitOnLeft: BK = Decimal.zero, creditOnRight: BK = Decimal.zero, withdrawalDhtAddressOnLeft: String = "", depositDhtAddressOnRight: String = "") -> (any Transaction)? {
+    public func construct(claim: any Claim, claimObject: any ClaimObject, makerDhtAddressAsHexString: OverlayNetworkAddressAsHexString, publicKey: PublicKey?, signature: Signature? = nil, book: Book, signer: Signer, peerSigner: Signer? = nil, transactionId: TransactionIdentification? = nil, date: Date? = Date.now, debitOnLeft: BK = Decimal.zero, creditOnRight: BK = Decimal.zero, withdrawalDhtAddressOnLeft: String = "", depositDhtAddressOnRight: String = "") -> (any Transaction)? {
         Log(self.rawValue)
         var transaction: (any Transaction)?
         guard let publicKey = publicKey else {
@@ -254,10 +254,10 @@ public extension Transaction {
      Paper:
      5) ノードは、ブロック内のすべてのトランザクションが有効で、まだ使用されていない場合にのみブロックを受け入れます。 #now
      */
-    func validate() -> Bool {
+    func validate(chainable: Book.ChainableResult = .chainableBlock) -> Bool {
         Log()
         guard let contentData = self.claimObject.toJsonString(signer: self.signer, peerSigner: self.peerSigner)?.utf8DecodedData, let contentHashedData = contentData.hashedData?.toData, let signature = self.signature else {
-            Log()
+            LogEssential("transaction signature false")
             return false
         }
         Log("SIGN#++")
@@ -267,18 +267,23 @@ public extension Transaction {
         Log("signature: \(signature.toString)")
         do {
             guard try self.verify(data: contentHashedData, signature: signature, signer: self.signer) else {
+                LogEssential("transaction verify false")
                 return false
             }
             
             /*
              Check Duplicate Birth as same Person.
              Only for Person transaction.
+             
+             Check Transactions Limited by Claim.
              */
             if self.type == .person {
+                LogEssential(self.claim.rawValue)
                 if let claimObject = self.claimObject as? ClaimOnPerson.Object, let personTransaction = self as? ImplementedPerson {
-                    if personTransaction.duplicatedPerson(hashedName: claimObject.personalData.name, hashedBirth: claimObject.personalData.birth, hashedPhone: claimObject.personalData.phone) {
+//                    if personTransaction.duplicatedPerson(claimAsString: self.claim.rawValue, hashedName: claimObject.personalData.name, hashedBirth: claimObject.personalData.birth, hashedPhone: claimObject.personalData.phone, chainable: chainable) {
+                    if personTransaction.duplicatedPerson(chainable: chainable) {
                         //Duplicated Person
-                        Log("Duplicate Birth as same Person.")
+                        LogEssential("Duplicate Birth as same Person.")
                         return false
                     }
                 }
@@ -288,7 +293,7 @@ public extension Transaction {
              Check balance for debit/credit in Transaction.
              */
             if !self.debitOnLeft.equal(self.creditOnRight) {
-                Log("No Match Balance for debit/credit in Transaction")
+                LogEssential("No Match Balance for debit/credit in Transaction")
                 return false
             }
 
@@ -296,11 +301,11 @@ public extension Transaction {
              Check Number of Digits Under Regulated Decimal Point.
              */
             guard self.debitOnLeft.validBKDigitsOfFraction(Decimal.validBKDigitsOfFraction) else {
-                Log("Invalid Digits in DebitOnLeft. \(self.debitOnLeft)")
+                LogEssential("Invalid Digits in DebitOnLeft. \(self.debitOnLeft)")
                 return false
             }
             guard self.creditOnRight.validBKDigitsOfFraction(Decimal.validBKDigitsOfFraction) else {
-                Log("Invalid Digits in CreditOnRight. \(self.creditOnRight)")
+                LogEssential("Invalid Digits in CreditOnRight. \(self.creditOnRight)")
                 return false
             }
             Log("\(self.debitOnLeft) \(self.creditOnRight)")
@@ -310,11 +315,11 @@ public extension Transaction {
              */
             //Decimal.max以下かチェックする
             guard self.debitOnLeft.asDecimal <= Decimal.maxBKValue.asDecimal else {
-                Log("Over Maximum Digit DebitOnLeft.")
+                LogEssential("Over Maximum Digit DebitOnLeft.")
                 return false
             }
             guard self.creditOnRight.asDecimal <= Decimal.maxBKValue.asDecimal else {
-                Log("Over Maximum Digit CreditOnRight.")
+                LogEssential("Over Maximum Digit CreditOnRight.")
                 return false
             }
 
@@ -327,14 +332,14 @@ public extension Transaction {
             Log("\(self.debitOnLeft) + \(self.feeForBooker) <= \(balancedAmount)")
             guard self.debitOnLeft.asDecimal + self.feeForBooker.asDecimal <= balancedAmount.asDecimal else {
                 //Short of balances.
-                Log("Short of balances in Account.")
+                LogEssential("Short of balances in Account.")
                 return false
             }
         } catch {
-            Log(error)
+            LogEssential(error)
             return false
         }
-        Log()
+        LogEssential("transaction validate true")
         return true
     }
     
@@ -367,7 +372,7 @@ public extension Transaction {
     func verify(data: Data, signature: Signature, signer: Signer) throws -> Bool {
         Log()
         Log("Verify Transaction.")
-        Log(data.utf8String)
+        Log(data.base64String)
         Log(signature.toString)
         Log(signer.publicKeyForSignature?.rawRepresentation.base64String)
         let verifySucceeded = try signer.verify(data: data, signature: signature)

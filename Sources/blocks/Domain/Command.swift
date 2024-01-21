@@ -163,7 +163,7 @@ public enum Command: String, CommandProtocol {
              Block chain
              */
         case .publishBlock :    //MARK: publishBlock
-            LogEssential("Do \(self.rawValue)")
+            LogEssential("Do \(self.rawValue)  From: \(fromNodeIp)")
             Log("publishBlock")
             /*
              Operands
@@ -214,13 +214,36 @@ public enum Command: String, CommandProtocol {
              #now
              
              */
+//             let nonceAsData = nonceAsHexadecimal.hexadecimalDecodedData
+//            Log(nonceAsData)
+//            guard let blockAsDictionary = blockAsJsonString.jsonToAnyDictionary else{return nil}
+//            Log(blockAsDictionary)
+//                let transactions = blockAsDictionary["transactions"] as? [[String : Any]]
+//            Log(transactions)
+//                let publicKeyForBlockAsData = base64EncodedPublicKeyStringForBlock.base64DecodedData
+//            Log(publicKeyForBlockAsData)
+//                let signatureForBlock = blockAsDictionary["signature"] as? String
+//            Log(signatureForBlock)
+//                let id = blockAsDictionary["id"] as? String
+//            Log(id)
+//                let candidateNextDifficulty = blockAsDictionary["nextDifficulty"] as? String
+//            Log(candidateNextDifficulty)
+//            let candidateNextDifficultyAsInt = Int(candidateNextDifficulty ?? "-1")
+//            Log(candidateNextDifficultyAsInt)
+//                let previousBlockHash = blockAsDictionary["previousBlockHash"] as? String
+//            Log(previousBlockHash)
+//            let signatureForBlockAsData = signatureForBlock?.base64DecodedData
+//            Log(signatureForBlockAsData)
+//            let transactionsAsJsonArrayString = transactions?.dictionarysToJsonString
+//            Log(transactionsAsJsonArrayString)
+
             if let nonceAsData = nonceAsHexadecimal.hexadecimalDecodedData,
                 let blockAsDictionary = blockAsJsonString.jsonToAnyDictionary,
                 let transactions = blockAsDictionary["transactions"] as? [[String : Any]],
-                let base64EncodedPublicKeyStringForTransaction = transactions.first?["publicKey"] as? String,
-                let publicKeyForTransactionAsData = base64EncodedPublicKeyStringForTransaction.base64DecodedData,
+//                let base64EncodedPublicKeyStringForTransaction = transactions.first?["publicKey"] as? String,
+//                let publicKeyForTransactionAsData = base64EncodedPublicKeyStringForTransaction.base64DecodedData,
                 let publicKeyForBlockAsData = base64EncodedPublicKeyStringForBlock.base64DecodedData,
-                let makerDhtAddressAsHexStringForTransaction = transactions.first?["makerDhtAddressAsHexString"] as? String,
+//                let makerDhtAddressAsHexStringForTransaction = transactions.first?["makerDhtAddressAsHexString"] as? String,
                 let signatureForBlock = blockAsDictionary["signature"] as? String,
                 let id = blockAsDictionary["id"] as? String,
                 let candidateNextDifficulty = blockAsDictionary["nextDifficulty"] as? String,
@@ -236,7 +259,7 @@ public enum Command: String, CommandProtocol {
                  どこにchainするかによって、paddingzerolength 値を変える
                  */
                 let (chainable, previousBlock, nextDifficulty) = (node as! Node).book.chainable(previousBlockHash: previousBlockHash, signatureForBlock: signatureForBlockAsData, node: (node as! Node))
-                Log(chainable)
+                LogEssential("\(chainable) block id: \(id) previousBlockHash: \(previousBlockHash)")
                 switch chainable {
                 case .secondaryCandidateBlocksNext:
                     /*
@@ -275,8 +298,7 @@ public enum Command: String, CommandProtocol {
                         Log("Can NOT Construct Block.")
                         return nil
                     }
-                    
-                    let allValidTransactions = block.add(transactions: transactionsAsJsonArrayString, makerDhtAddressAsHexString: makerDhtAddressAsHexStringForTransaction, publicKeyAsData: publicKeyForTransactionAsData, node: node as! Node)
+                    let allValidTransactions = block.add(multipleMakerTransactions: transactions, node: node as! Node, chainable: chainable)
                     /*
                      As Protocol extension can not define settable property,
                      Do Downcast to Node.
@@ -301,7 +323,7 @@ public enum Command: String, CommandProtocol {
             LogEssential("Do \(self.rawValue)")
             return nil
         case .publishTransaction :   //MARK: publishTransaction
-            LogEssential("Do \(self.rawValue)")
+            LogEssential("Do \(self.rawValue)  From: \(fromNodeIp)")
             Log("publishTransaction")
             /*
              Transaction を受け取った
@@ -391,7 +413,8 @@ public enum Command: String, CommandProtocol {
                     var block = Block(maker: node.dhtAddressAsHexString, previousBlock: lastBlock, publicKey: publickeyForNewBlockAsData, date: Date.now.toUTCString, paddingZeroLengthForNonce: (node as! Node).book.currentDifficultyAsNonceLeadingZeroLength, book: (node as! Node).book) else {
                 return nil
             }
-            if block.add(transactions: transactionsAsJsonArrayString, makerDhtAddressAsHexString: makerDhtAddressAsHexString, publicKeyAsData: publicKeyAsData, node: node as! Node) {
+            let transactionsAsDictionaryArray = transactionsAsJsonArrayString.jsonToDictionaryArray
+            if block.add(singleMakerTransactions: transactionsAsDictionaryArray, makerDhtAddressAsHexString: makerDhtAddressAsHexString, publicKeyAsData: publicKeyAsData, node: node as! Node) {
             } else {
                 return nil
             }
@@ -400,13 +423,21 @@ public enum Command: String, CommandProtocol {
              Transactionの最大数を決める（1 Block内）
              ↑
              max 30 transactions / block ぐらい？
+             #pending
              */
-
-            /*
-             BookしたNew Blockをp2pネットワークに流す
-             近隣nodeへ送信する
-             */
+            Log()
             if let signer = (node as! Node).signer() {
+                /*
+                 add new block to own node's book.
+                 */
+                LogEssential("Make Chain Own Generated Block to Own Node's Book.")
+                block.chain(previousBlock: lastBlock, node: node, signer: signer)
+
+                /*
+                 BookしたNew Blockをp2pネットワークに流す
+                 近隣nodeへ送信する
+                 */
+                Log("Publish Block to known Nodes.")
                 Log((node as! Node).signer()?.privateKeyForSignature?.rawRepresentation.base64String)
                 Log((node as! Node).signer()?.privateKeyForSignature?.rawRepresentation.base64String)
                 block.send(node: node, signer: signer)

@@ -260,7 +260,7 @@ public struct Block {
         self.id = Block.nullBlockId
     }
 
-    public static func block(from dictionary: [String: Any], book: Book, node: Node) -> Block? {
+    public static func block(from dictionary: [String: Any], book: Book, node: Node, chainable: Book.ChainableResult) -> Block? {
         Log()
         if let date = dictionary["date"] as? String,
             let maker = dictionary["maker"] as? String,
@@ -273,13 +273,20 @@ public struct Block {
             let difficultyAsNonceLeadingZeroLength = dictionary["difficultyAsNonceLeadingZeroLength"] as? String, let difficultyAsNonceLeadingZeroLengthAsInt = Int(difficultyAsNonceLeadingZeroLength),
             let publicKeyString = dictionary["publicKey"] as? String,
             let publicKey = publicKeyString.base64DecodedData,
-            let transactions = dictionary["transactions"] as? String {
+            let transactions = dictionary["transactions"] as? [[String : Any]]
+//            let transactionsAsJsonArrayString = transactions.dictionarysToJsonString 
+        {
+            Log()
             if var block = Block(date: date, maker: maker, signature: signature, previousBlockHash: previousBlockHash, previousBlockNonce: previousBlockNonce, previousBlockDifficulty: previousBlockDifficultyAsInt, nonceAsHex: nonceAsHex, publicKey: publicKey, paddingZeroLength: difficultyAsNonceLeadingZeroLengthAsInt, book: book) {
-                if block.add(transactions: transactions, makerDhtAddressAsHexString: maker, publicKeyAsData: publicKey, node: node) {
+                Log()
+//                if block.add(transactions: transactions, makerDhtAddressAsHexString: maker, publicKeyAsData: publicKey, node: node) {
+                if block.add(multipleMakerTransactions: transactions, node: node, chainable: chainable) {
+                    Log()
                     return block
                 }
             }
         }
+        Log()
         return nil
     }
 
@@ -314,17 +321,62 @@ public struct Block {
      Add         Transactionを追加する
          署名確認、残高確認を行う
      */
-    public mutating func add(transactions transactionAsJsonArrayString: String, makerDhtAddressAsHexString: OverlayNetworkAddressAsHexString, publicKeyAsData: PublicKey, node: Node) -> Bool {
-        Log()
+//    public mutating func add(transactions transactionAsJsonArrayString: String, makerDhtAddressAsHexString: OverlayNetworkAddressAsHexString, publicKeyAsData: PublicKey, node: Node, chainable: Book.ChainableResult = .chainableBlock) -> Bool {
+    /*
+     Add Multi Owner's Transactions to Block.
+     Use At Received PB (Publish Block) Command, and storeAsSecondaryCandidate()
+     
+     Block#storeAsSecondaryCandidate() →Block#block(from:)から使う関数
+     
+     18:19:15 Block.swift storeAsSecondaryCandidate() l.731 
+     {
+     "id":"cf83e1357eefb8bdf1542850d66d8007d620e4050b5715dc83f4a921d36ce9ce47d0d13c5d85f2b0ff8318d2877eec2f63b931bd47417a81a538327af927da3e","date":"2024-01-16T09:19:11.860Z","maker":"f87f3ce797b4fcdd28b33987751f821f251b61b7f16b31dbf38888e560a2ec0c1492fc41332ce86b330cc98cb2ac8bdcf482c61703ecfdcd58d7b94f2ae29876","type":"Block","signature":"CZvtLX/FDFQDrwPrOs1HVBaaCHHjC5jpA/69KA7yLkvM2Kb+3vnhbCx9K+XWU7WB5Z7ZPEXvGt1oo2aMs9QiCA==","previousBlockHash":"ee1466ebd3df312057444a9054b1a7cd63aaf21d80ffdb1090586a211b9e9d12293b04d56438d00992b9817a37ff1c2a96cfa84d4600b767dd6b0a57f59adf3e","previousBlockNonce":"00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000","previousBlockDifficulty":"16","nextDifficulty":"18","nonce":"ffffffffffffffffffffffffff000000000000000000000000000000000000000000000000000000000000000000000000000000000000000010","difficultyAsNonceLeadingZeroLength":"16","publicKey":"s6TJx6hRdW2rp4RVOYOuYNDtckleOQuHngKyU5svzag=",
+     
+     "transactions":[
+            {
+            "transactionId":"PScf83e1357eefb8bdf1542850d66d8007d620e4050b5715dc83f4a921d36ce9ce47d0d13c5d85f2b0ff8318d2877eec2f63b931bd47417a81a538327af927da3e","date":"2024-01-16T09:19:11.339Z","type":"person","makerDhtAddressAsHexString":"d07a803fe6eff5c730357455dbf19d729894e591b7f99f0cd1c7cc49dca0d7a69cc57f77c6afa42436db113ddcb5a1544ffbc21b0f10a552901ad8501e753675","publicKey":"fybBwm9cGa4ul0H0T+0+1hq6vm2DAYT4B9Mb0NSDwS8=","claim":"FT",
+            "claimObject":{"CombinedSealedBox":"","Description":"","Destination":"BroadCast","PersonalData":"","PublicKeyForEncryption":"LIzsJsVk7JLzjml50yP9jGQN6YOwe1T1kZi1nE2oJlk="},"signature":"UiuWPw70h3/TwEwxwX9ixgAbshqpxXlHwlnnxuX+mMzaO1I+p4QdP7w3SnpYKZyMaTBcA9l4L6gGnN7dydxFBg=="
+            }
+        ]
+     }
+     */
+    public mutating func add(multipleMakerTransactions transactionsAsDictionary: [[String : Any]]?, node: Node, chainable: Book.ChainableResult = .chainableBlock) -> Bool {
+        Log(transactionsAsDictionary)
         var addedAll = true
-        let signer = Signer(publicKeyAsData: publicKeyAsData, makerDhtAddressAsHexString: makerDhtAddressAsHexString)
-        let transactions = Transactions.Maker(book: self.book, string: transactionAsJsonArrayString, signer: signer).stringToTransactions
+        transactionsAsDictionary?.forEach {
+            Log($0)
+            if let makerDhtAddressAsHexString = $0["makerDhtAddressAsHexString"] as? String, let publicKeyAsBase64String = $0["publicKey"] as? String,
+               let publicKeyAsData: PublicKey = publicKeyAsBase64String.base64DecodedData {
+                Log()
+                let result = self.add(singleMakerTransactions: [$0], makerDhtAddressAsHexString: makerDhtAddressAsHexString, publicKeyAsData: publicKeyAsData, node: node, chainable: chainable)
+                if !result {
+                    addedAll = false
+                }
+            }
+        }
+        Log(addedAll)
+        return addedAll
+    }
+    
+    /*
+     Add Single Owner's Transactions to Block.
+     Use At Received PT (Publish Transaction) Command.
+     */
+    public mutating func add(singleMakerTransactions transactionsAsDictionary: [[String : Any]]?, makerDhtAddressAsHexString: OverlayNetworkAddressAsHexString, publicKeyAsData: PublicKey, node: Node, chainable: Book.ChainableResult = .chainableBlock) -> Bool {
+        Log()
+        guard let transactionsAsDictionary = transactionsAsDictionary else {
+            return false
+        }
+        var addedAll = true
+        let signerOnTransactionMaker = Signer(publicKeyAsData: publicKeyAsData, makerDhtAddressAsHexString: makerDhtAddressAsHexString)
+        let transactionAsJsonArrayString = transactionsAsDictionary.dictionarysToJsonString
+        let transactions = Transactions.Maker(book: self.book, string: transactionAsJsonArrayString, signer: signerOnTransactionMaker).stringToTransactions
         Log(transactions?.count)
         transactions?.forEach {
             Log()
             if let transactionSignature = $0.signature, let transactionId = $0.transactionId, let date = $0.date, let publicKey = $0.publicKey {
                 Log()
-                let validTransactionCauseAdded = addTransaction(claim: $0.claim, claimObject: $0.claimObject, type: $0.type.rawValue, makerDhtAddressAsHexString: $0.makerDhtAddressAsHexString, signature: transactionSignature, publicKeyAsData: publicKey, transactionId: transactionId, date: date)
+                let validTransactionCauseAdded = addTransaction(claim: $0.claim, claimObject: $0.claimObject, type: $0.type.rawValue, makerDhtAddressAsHexString: $0.makerDhtAddressAsHexString, signature: transactionSignature, publicKeyAsData: publicKey, transactionId: transactionId, date: date, chainable: chainable)
                 if addedAll && validTransactionCauseAdded {
                     addedAll = true
                 } else {
@@ -360,10 +412,10 @@ public struct Block {
      &
      Add A Transaction to Block
      */
-    public mutating func addTransaction(claim: any Claim, claimObject: any ClaimObject, type: String, makerDhtAddressAsHexString: OverlayNetworkAddressAsHexString, signature: Signature, publicKeyAsData: PublicKey, transactionId: TransactionIdentification, date: Date) -> Bool {
+    public mutating func addTransaction(claim: any Claim, claimObject: any ClaimObject, type: String, makerDhtAddressAsHexString: OverlayNetworkAddressAsHexString, signature: Signature, publicKeyAsData: PublicKey, transactionId: TransactionIdentification, date: Date, chainable: Book.ChainableResult) -> Bool {
         Log()
         if isThereSameTransaction(signature: signature) {
-            Log("Duplicate Transaction in Block.")
+            LogEssential("Duplicate Transaction in Block.")
         } else {
             Log()
             /*
@@ -384,7 +436,7 @@ public struct Block {
                 Log()
                 if let transaction = type.construct(claim: claim, claimObject: claimObject, makerDhtAddressAsHexString: makerDhtAddressAsHexString, publicKey: publicKeyAsData, signature: signatureData, book: self.book, signer: signer, transactionId: transactionId, date: date) {
                     Log(transaction.jsonString)
-                    if transaction.validate() {
+                    if transaction.validate(chainable: chainable) {
                         Log("Valid Transaction Cause Add to Block. \(transaction.transactionId)")
                         self.transactions += [transaction]
                         return true
@@ -428,9 +480,32 @@ public struct Block {
         let trimLastSemicolonIndex = transactionsInBlockAsJson.index(transactionsInBlockAsJson.endIndex, offsetBy: -1)
         return transactionsInBlockAsJson[transactionsInBlockAsJson.startIndex..<trimLastSemicolonIndex] + "]"
     }
+
+    /*
+     Once Signed, Chain to Own Node's Book.
+     */
+    mutating func chain(previousBlock: Block, node: any NodeProtocol, signer: Signer) {
+        Log()
+        /*
+         As Block Have Not Signature yet (Unsigned), Sign it.
+         */
+        if self.signature == nil {
+            Log()
+            do {
+                if let _ = signer.privateKeyForSignature {
+                    Log(signer.privateKeyForSignature?.rawRepresentation.base64String)
+                    try sign(with: signer)
+                }
+            } catch {
+                Log(error)
+            }
+        }
+        Log()
+        (node as! Node).book.chain(block: self, chainable: .chainableBlock, previousBlock: previousBlock, node: node as! Node)
+    }
     
     /*
-     署名を追加してから、Publishする
+     Once Signed, Publish Block to known Nodes.
      */
     mutating func send(node: any NodeProtocol, signer: Signer) {
         Log()
@@ -623,12 +698,12 @@ public struct Block {
         Validate Block
         有効性チェックする
      */
-    public func validate(signature: Signature, signer: Signer) -> Bool {
+    public func validate(signature: Signature, signer: Signer, chainable: Book.ChainableResult = .chainableBlock) -> Bool {
         Log()
         var validated = true
         transactions.forEach {
             Log()
-            if $0.validate() {
+            if $0.validate(chainable: chainable) {
                 Log()
             } else {
                 Log()
@@ -638,6 +713,7 @@ public struct Block {
         Log()
 
         if validated {
+            Log()
             if let contentHashedData = self.contentForSignAndValidate.hashedData?.toData {
                 Log("SIGN#++ Block")
                 Log("raw data: \(self.contentForSignAndValidate.utf8String)")
@@ -658,7 +734,7 @@ public struct Block {
 
     public func verify(data: Data, signature: Signature, signer: Signer) throws -> Bool {
         Log("Verify Block.")
-        Log(data.utf8String)
+        Log(data.base64String)
         Log(signature.toString)
         Log(signer.publicKeyForSignature?.rawRepresentation.base64String)
         
@@ -678,8 +754,14 @@ public struct Block {
         self.archivedDirectory + self.archiveFile
     }
     public func storeAsSecondaryCandidate() {
-        Log()
         do {
+            if !FileManager.default.fileExists(atPath: self.archivedDirectory) {
+                do {
+                    try FileManager.default.createDirectory(atPath: self.archivedDirectory, withIntermediateDirectories: true, attributes: nil)
+                } catch {
+                    Log()
+                }
+            }
             let storeUrl = URL(fileURLWithPath: self.archiveFilePath)
 
             /*
@@ -697,7 +779,7 @@ public struct Block {
              ]
              */
             let jsonAsData = self.content
-            Log("\(jsonAsData.utf8String ?? "")")
+            LogEssential("\(jsonAsData.utf8String ?? "")")
             try jsonAsData.append(to: storeUrl, truncate: true)
         } catch {
             Log("Save Json Error \(error)")
@@ -707,14 +789,14 @@ public struct Block {
     public func isCachedForSecondaryCandidate() -> Bool {
         Log()
         if !FileManager.default.fileExists(atPath: self.archiveFilePath) {
-            Log("No Cached")
+            LogEssential("No Cached")
             return false
         }
-        Log("Cached")
+        LogEssential("Cached")
         return true
     }
 
-    public func fetchSecondaryCandidate() -> [String: String]? {
+    public func fetchSecondaryCandidate() -> [String: Any]? {
         Log()
         if self.isCachedForSecondaryCandidate() {
             Log()
@@ -723,12 +805,14 @@ public struct Block {
                 let data = try Data(contentsOf: url)
                 Log("\(data.utf8String ?? "")")
                 if let jsonAsString = data.utf8String {
-                    return jsonAsString.jsonToDictionary
+                    Log()
+                    return jsonAsString.jsonToAnyDictionary
                 }
             } catch {
                 Log("Error Fetching Json Data: \(error)")
             }
         }
+        Log()
         return nil
     }
 }

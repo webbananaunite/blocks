@@ -147,16 +147,29 @@ public enum ClaimOnPerson: String, Claim {
         public func toJsonString(signer: Signer?, peerSigner: Signer?) -> String? {
             if let signer = signer, let peerSigner = peerSigner {
                 Log()
+//                if let personalDataAsJsonString = self.personalData.encrypt(signer: signer, peerSigner: peerSigner)?.base64String {
+//                    Log()
+//                    return [
+//                        "Destination": destination.toString,
+//                        "PublicKeyForEncryption": publicKeyForEncryption?.publicKeyForEncryptionToString ?? "",
+//                        "CombinedSealedBox": combinedSealedBox, //image binary or zip file
+//                        "Description": description,
+//                        "PersonalData": personalDataAsJsonString,
+//                    ].dictionaryToJsonString
+//                }
+                var personalData = ""
                 if let personalDataAsJsonString = self.personalData.encrypt(signer: signer, peerSigner: peerSigner)?.base64String {
                     Log()
-                    return [
-                        "Destination": destination.toString,
-                        "PublicKeyForEncryption": publicKeyForEncryption?.publicKeyForEncryptionToString ?? "",
-                        "CombinedSealedBox": combinedSealedBox, //image binary or zip file
-                        "Description": description,
-                        "PersonalData": personalDataAsJsonString,
-                    ].dictionaryToJsonString
+                    personalData = personalDataAsJsonString
                 }
+                return [
+                    "Destination": destination.toString,
+                    "PublicKeyForEncryption": publicKeyForEncryption?.publicKeyForEncryptionToString ?? "",
+                    "CombinedSealedBox": combinedSealedBox, //image binary or zip file
+                    "Description": description,
+                    "PersonalData": personalData,
+                ].dictionaryToJsonString
+
             } else {
                 Log()
                 return [
@@ -460,31 +473,60 @@ public extension Person {
      Takerの署名が正しいか
      Takerは{1.5}人までのBirth署名ができる（これについては、blocksの普及速度に関係する。）
      ３等身以内のTakerは協力できない。
+     
+     if personTransaction.duplicatedPerson(claimAsString: self.claim.rawValue, hashedName: claimObject.personalData.name, hashedBirth: claimObject.personalData.birth, hashedPhone: claimObject.personalData.phone, chainable: chainable)
      */
-    func duplicatedPerson(hashedName: String?, hashedBirth: String?, hashedPhone: String?) -> Bool {
-        guard let hashedName = hashedName, let hashedBirth = hashedBirth, let hashedPhone = hashedPhone else {
+//    func duplicatedPerson(claimAsString: String?, hashedName: String?, hashedBirth: String?, hashedPhone: String?, chainable: Book.ChainableResult) -> Bool {
+    func duplicatedPerson(chainable: Book.ChainableResult) -> Bool {
+        guard let claimObject = self.claimObject as? ClaimOnPerson.Object, let claimAsString = self.claim.rawValue else {
+            LogEssential("incorrect transaction cause matchedSamePerson: false")
+            return false
+        }
+        let hashedName = claimObject.personalData.name
+        let hashedBirth = claimObject.personalData.birth
+        let hashedPhone = claimObject.personalData.phone
+        if hashedName == "" || hashedBirth == "" || hashedPhone == "" {
+            LogEssential("empty person information in transaction cause matchedSamePerson: false")
             return false
         }
         var matchedSamePerson = false
-        for block in self.book.blocks {
-            Log()
-            for transaction in block.transactions {
-                Log(transaction.jsonString)
+        for block in self.book.blocks.enumerated() {
+            LogEssential(block.offset)
+            /*
+             For Secondary Candidate Block, Duplicate Check will do exclude Last Block.
+             */
+            if chainable == .storeAsSecondaryCandidateBlock {
+                Log()
+                if block.offset == self.book.blocks.count - 1 {
+                    break
+                }
+            }
+            
+            for transaction in block.element.transactions {
+                LogEssential(transaction.jsonString)
                 if transaction.type == .person {
                     //It's Person transaction.
                     if let claimString = transaction.claim.rawValue {
                         if let claimObject = transaction.claimObject as? ClaimOnPerson.Object {
-                            if claimObject.personalData.name == hashedName {
-                                if claimObject.personalData.birth == hashedBirth {
-                                    //There is same Person already.
-                                    matchedSamePerson = true
-                                    break
+                            LogEssential("\(claimString) == \(claimAsString)")
+                            if claimString == claimAsString {   // Only As Same Claim
+                                if claimObject.personalData.name == "" || claimObject.personalData.birth == "" || claimObject.personalData.phone == "" {
+                                    LogEssential("\(claimObject.personalData.name) == \(hashedName)")
+                                    if claimObject.personalData.name == hashedName {
+                                        LogEssential("\(claimObject.personalData.birth) == \(hashedBirth)")
+                                        if claimObject.personalData.birth == hashedBirth {LogEssential()
+                                            //There is same Person already.
+                                            matchedSamePerson = true
+                                            break
+                                        }
+                                    }
+                                    LogEssential("\(claimObject.personalData.phone) == \(hashedPhone)")
+                                    if claimObject.personalData.phone == hashedPhone {LogEssential()
+                                        //There is same Person already.
+                                        matchedSamePerson = true
+                                        break
+                                    }
                                 }
-                            }
-                            if claimObject.personalData.phone == hashedPhone {
-                                //There is same Person already.
-                                matchedSamePerson = true
-                                break
                             }
                         }
                     }
@@ -494,6 +536,7 @@ public extension Person {
                 break
             }
         }
+        LogEssential("matchedSamePerson: \(matchedSamePerson)")
         return matchedSamePerson
     }
 }

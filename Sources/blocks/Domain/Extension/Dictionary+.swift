@@ -10,8 +10,13 @@ import Foundation
 
 public extension [String: String] {
     var dictionaryToJsonString: String? {
-        if let dataAsJson = try? JSONSerialization.data(withJSONObject: self, options: [.sortedKeys]), let textAsJsonFormatted = dataAsJson.utf8String {
+        do {
+            let dataAsJson = try JSONSerialization.data(withJSONObject: self, options: [.sortedKeys])
+            let textAsJsonFormatted = dataAsJson.utf8String
+            Log()
             return textAsJsonFormatted
+        } catch {
+            Log(error)
         }
         return nil
     }
@@ -23,8 +28,13 @@ public extension [String: String] {
 
 public extension [String: Any] {
     var dictionaryToJsonString: String? {
-        if let dataAsJson = try? JSONSerialization.data(withJSONObject: self, options: [.sortedKeys]), let textAsJsonFormatted = dataAsJson.utf8String {
+        do {
+            let dataAsJson = try JSONSerialization.data(withJSONObject: self, options: [.sortedKeys])
+            let textAsJsonFormatted = dataAsJson.utf8String
+            Log()
             return textAsJsonFormatted
+        } catch {
+            Log(error)
         }
         return nil
     }
@@ -32,8 +42,14 @@ public extension [String: Any] {
 
 public extension [[String : Any]] {
     var dictionarysToJsonString: String? {
-        if let dataAsJson = try? JSONSerialization.data(withJSONObject: self, options: [.sortedKeys]), let textAsJsonFormatted = dataAsJson.utf8String {
+        Log()
+        do {
+            let dataAsJson = try JSONSerialization.data(withJSONObject: self, options: [.sortedKeys])
+            let textAsJsonFormatted = dataAsJson.utf8String
+            Log()
             return textAsJsonFormatted
+        } catch {
+            Log(error)
         }
         return nil
     }

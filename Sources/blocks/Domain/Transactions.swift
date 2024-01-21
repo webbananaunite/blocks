@@ -17,7 +17,7 @@ public struct Transactions {
          */
         let dictionary: [String: Any]?  //Dictionary Key must match as Transaction#useAsOperands
         let string: String?     //json string with utf8 encorded.
-        let signer: Signer?
+        let signer: Signer?   //make by each transaction
         let book: Book
 
         public init(book: Book, dictionary: [String : Any]? = nil, string: String? = nil, signer: Signer? = nil) {
@@ -28,17 +28,52 @@ public struct Transactions {
         }
         
         public var dictionaryToTransaction: (any Transaction)? {
+//            let publicKeyString = dictionary["publicKey"] as? String
+//            let makerDhtAddressAsHexString = dictionary["makerDhtAddressAsHexString"] as? String
+            /*
+             Optional([
+             "claimObject": {
+                 CombinedSealedBox = "";
+                 Description = "";
+                 Destination = BroadCast;
+                 PersonalData = "";
+                 PublicKeyForEncryption = "1kzl6vkw8RgPaem4mdQan5Q7QnZz97yqYHq1qU7Idy0=";
+             }, 
+             "date": 2024-01-17T05:02:29.596Z,
+             "type": person,
+             "claim": FT,
+             "signature": uNXK4WYdOuhwyA06PhUTuepFkeQDddHV5OTTS0yzm1qO44zd+ccTuh3/XadSqGtq693YFChPBcMDnkKuO2ZkDA==,
+             "transactionId": PScf83e1357eefb8bdf1542850d66d8007d620e4050b5715dc83f4a921d36ce9ce47d0d13c5d85f2b0ff8318d2877eec2f63b931bd47417a81a538327af927da3e
+             ])
+             */
             Log(self.dictionary)
+//            guard let dictionary = self.dictionary else {return nil}
+//            let signatureBase64 = dictionary["signature"] as? String
+//            let signature = signatureBase64?.base64DecodedData
+//            let publicKeyString = dictionary["publicKey"] as? String
+//            let publicKeyAsData = publicKeyString?.base64DecodedData
+//            let makerDhtAddressAsHexString = dictionary["makerDhtAddressAsHexString"] as? String
+//            let type = dictionary["type"] as? String
+//            let typeAsTransactionType = TransactionType(rawValue: type ?? "")
+//            let claimAsString = dictionary["claim"] as? String
+//            let claim = typeAsTransactionType?.construct(rawValue: claimAsString ?? "")
+//            let claimContentAsJsonString = dictionary["claimObject"]
+//            let transactionId = dictionary["transactionId"] as? String
+//            let dateString = dictionary["date"] as? String
+
+            
             if let dictionary = self.dictionary,
                let signatureBase64 = dictionary["signature"] as? String,
                let signature = signatureBase64.base64DecodedData,
-               let publicKey = self.signer?.publicKeyAsData,
-
+               
+//               let publicKeyString = dictionary["publicKey"] as? String,
+//               let publicKeyAsData = publicKeyString.base64DecodedData,
+//               let makerDhtAddressAsHexString = dictionary["makerDhtAddressAsHexString"] as? String,
+                let signer = self.signer,
                let type = dictionary["type"] as? String,
                let typeAsTransactionType = TransactionType(rawValue: type),
                let claimAsString = dictionary["claim"] as? String, //Claim.rawValue
                let claim = typeAsTransactionType.construct(rawValue: claimAsString),
-               let makerDhtAddressAsHexString = self.signer?.makerDhtAddressAsHexString,//これ
                /*
                 claimObject example:
                 
@@ -49,13 +84,13 @@ public struct Transactions {
                let dateString = dictionary["date"] as? String {
                 Log("claim: \(claim)")
                 Log("claimContentAsJsonString: \(claimContentAsJsonString)")
-                Log("publickey: \(publicKey.publicKeyToString)")
+                Log("publickey: \(signer.publicKeyAsData?.publicKeyToString)")
                 Log("signature: \(signature.base64String)")
                 Log("signatureData: \(signature.base64String)")
-                Log("makerDhtAddressAsHexString: \(makerDhtAddressAsHexString)")
+                Log("makerDhtAddressAsHexString: \(signer.makerDhtAddressAsHexString)")
                 Log("transactionId: \(transactionId)")
                 Log("date: \(dateString)")
-                
+//                let signer = Signer(publicKeyAsData: publicKeyAsData, makerDhtAddressAsHexString: makerDhtAddressAsHexString)
                 var claimObject: ClaimObject?
                 if claimContentAsJsonString is String {
                     Log()
@@ -72,9 +107,9 @@ public struct Transactions {
                     Log()
                 }
                 Log()
-                if let claimObject = claimObject, let signer = self.signer {
+                if let claimObject = claimObject {
                     Log()
-                    return typeAsTransactionType.construct(claim: claim, claimObject: claimObject, makerDhtAddressAsHexString: makerDhtAddressAsHexString, publicKey: publicKey, signature: signature, book: self.book, signer: signer, transactionId: transactionId, date: dateString.date)
+                    return typeAsTransactionType.construct(claim: claim, claimObject: claimObject, makerDhtAddressAsHexString: signer.makerDhtAddressAsHexString, publicKey: signer.publicKeyAsData, signature: signature, book: self.book, signer: signer, transactionId: transactionId, date: dateString.date)
                 }
             }
             return nil
@@ -94,18 +129,18 @@ public struct Transactions {
                             }
                             Log()
                             return jsonDictionaryArray.map { (jsonDictionary) -> (any Transaction)? in
-                                let json = Maker(book: self.book, dictionary: jsonDictionary, signer: self.signer)
+                                let jsonMaker = Maker(book: self.book, dictionary: jsonDictionary, signer: self.signer)
                                 Log(jsonDictionary)
-                                return json.dictionaryToTransaction
+                                return jsonMaker.dictionaryToTransaction
                             }.compactMap {
                                 $0
                             }
                         }
                     } else {
                         if let jsonDictionary = jsonData as? [String: Any] {
-                            let json = Maker(book: self.book, dictionary: jsonDictionary, signer: self.signer)
+                            let jsonMaker = Maker(book: self.book, dictionary: jsonDictionary, signer: self.signer)
                             Log(jsonDictionary)
-                            if let transaction = json.dictionaryToTransaction {
+                            if let transaction = jsonMaker.dictionaryToTransaction {
                                 return [transaction]
                             }
                         }

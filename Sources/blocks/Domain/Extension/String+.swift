@@ -29,8 +29,25 @@ public extension String {
         Log(self)
         do {
             if let jsonAsData = self.utf8DecodedData {
-                Log(jsonAsData.utf8String)
+                Log()
                 if let jsonAsDictionary = try JSONSerialization.jsonObject(with: jsonAsData, options: .allowFragments) as? [String: Any] {
+                    Log(jsonAsDictionary)
+                    return jsonAsDictionary
+                }
+            }
+        } catch {
+            Log("Error Fetching Json Data:\(error)")
+        }
+        Log()
+        return nil
+    }
+    
+    var jsonToDictionaryArray: [[String : Any]]? {
+        Log(self)
+        do {
+            if let jsonAsData = self.utf8DecodedData {
+                Log()
+                if let jsonAsDictionary = try JSONSerialization.jsonObject(with: jsonAsData, options: .allowFragments) as? [[String: Any]] {
                     Log(jsonAsDictionary)
                     return jsonAsDictionary
                 }

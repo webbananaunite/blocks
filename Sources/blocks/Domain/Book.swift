@@ -143,8 +143,8 @@ public struct Book {
         let publicKeyAsData = block.publicKey
         let signer = Signer(publicKeyAsData: publicKeyAsData, makerDhtAddressAsHexString: block.maker)
         if let signatureData = block.signature {
-            if block.validate(signature: signatureData, signer: signer) {
-                Log("Validated A Block. \(block.id)")
+            if block.validate(signature: signatureData, signer: signer, chainable: chainable) {
+                Log("Validated A Block. id: \(block.id) hashedString: \(block.hashedString)")
                 /*
                  difficulty
                  
@@ -166,7 +166,7 @@ public struct Book {
                     //add genesis block
                     self.blocks += [Block.genesis]
                 }
-                Log(chainable)
+                LogEssential(chainable)
                 switch chainable {
                 case .secondaryCandidateBlocksNext:
                     /*
@@ -174,7 +174,7 @@ public struct Book {
                      
                      If Chain New Block to Secondary Candidate Block, and Remove Last Block.
                      */
-                    Log("Block is Secondary Candidate Block's Next.")
+                    LogEssential("The Block Chained in Legitimate Chain as Secondary Candidate Block's Next. popLast + [secondaryCandidateBlock, the block]")
                     let secondaryCandidateBlock = previousBlock
                     let _ = self.blocks.popLast()
                     self.blocks += [secondaryCandidateBlock, block]
@@ -184,14 +184,28 @@ public struct Book {
                      
                      Function detect whether same previous block to chain the block.
                      */
-                    Log("Store As Secondary Candidate Block.")
+                    LogEssential("The Block Store As Secondary Candidate Block in Candidate Chain.")
+                    LogEssential(block.hashedString)
+                    LogEssential(block.content.utf8String)
                     block.storeAsSecondaryCandidate()
+//                    #if DEBUG
+//                    /*
+//                     Reveal Secondary Candidate Block's Hash
+//                     */
+//                    if let secondaryCandidateAsDictionary = block.fetchSecondaryCandidate(),
+//                       let secondaryCandidateBlock = Block.block(from: secondaryCandidateAsDictionary, book: self, node: node, chainable: .storeAsSecondaryCandidateBlock) {
+//                        LogEssential("Just Stored secondaryCandidateBlockHash: \(secondaryCandidateBlock.hashedString)")
+//                        LogEssential(secondaryCandidateBlock.content.utf8String)
+//                    }
+//                    #endif
                 case .chainableBlock:
                     /*
                      Block is To Chain Next.
                      New Block As Cached Last Block's Next.
                      */
-                    Log("Block is To Chain Next.")
+                    LogEssential("The Block Chained in Legitimate Chain.")
+                    LogEssential("\(block.hashedString)")
+                    LogEssential(block.content.utf8String)
                     //Append A Block
                     self.blocks += [block]
                     self.currentDifficultyAsNonceLeadingZeroLength = makeNextDifficulty(blockDate: block.date)
@@ -200,6 +214,24 @@ public struct Book {
                 case .omitBlock:
                     break
                 }
+                #if DEBUG
+                print("After Block Chained")
+                if self.blocks.count == 0 {print("legitimate chain none")}
+                for block in self.blocks.enumerated() {
+                    print("legitimate chain \(block.offset): \(block.element.hashedString)", terminator: "\n")
+                }
+                if self.blocks.count > 0 {self.lastBlock?.isCachedForSecondaryCandidate()}
+                /*
+                 Reveal Secondary Candidate Block's Hash
+                 */
+                LogEssential("--Reveal Secondary Candidate Block's Hash")
+                if let secondaryCandidateAsDictionary = block.fetchSecondaryCandidate(),
+                   let secondaryCandidateBlock = Block.block(from: secondaryCandidateAsDictionary, book: self, node: node, chainable: .storeAsSecondaryCandidateBlock) {
+                    LogEssential("Have Stored secondaryCandidateBlockHash: \(secondaryCandidateBlock.hashedString)")
+                    LogEssential(secondaryCandidateBlock.content.utf8String)
+                }
+                LogEssential("++Reveal Secondary Candidate Block's Hash")
+                #endif
                 Log()
                 //Store to Json File.
                 if chainable == .secondaryCandidateBlocksNext || chainable == .chainableBlock {
@@ -216,21 +248,29 @@ public struct Book {
         case chainableBlock     //Block is To Chain Next.
     }
     public func chainable(previousBlockHash: HashedString, signatureForBlock: Signature, node: Node) -> (ChainableResult, Block, Difficulty) {
+        Log("previousBlockHash: \(previousBlockHash)")
+        #if DEBUG
+        print("Pre Block Chained")
+        if self.blocks.count == 0 {print("legitimate chain none")}
+        for block in self.blocks.enumerated() {
+            print("legitimate chain \(block.offset): \(block.element.hashedString)", terminator: "\n")
+        }
+        #endif
         let lastBlock = self.lastBlock ?? Block.genesis
         Log(self.blocks.count)
         guard let lastBlockSignature = lastBlock.signature else {
-            Log("Invalid Block.")
+            LogEssential("The Block to Trash as Signature Invalid.")
             return (.omitBlock, Block(Null: ""), Int.max)
         }
         if lastBlockSignature.equal(signatureForBlock) {
             /*
              Duplicate Block
              */
-            Log("Duplicate Block.")
+            LogEssential("The Block to Trash as Signature Duplicate.")
             return (.omitBlock, Block(Null: ""), Int.max)
         }
-            
-        Log("\(previousBlockHash) != \(lastBlock.hashedString)")
+        
+        LogEssential("Legitimate Chain Chainable? \(previousBlockHash) != \(lastBlock.hashedString)")
         if let lastBlockHashedString = lastBlock.hashedString {
             if previousBlockHash.equal(lastBlockHashedString) {
                 /*
@@ -238,26 +278,28 @@ public struct Book {
                  
                  New Block As Cached Last Block's Next.
                  */
-                Log("Block is To Chain Next.")
+                LogEssential("Yes, The Block Chainable with Legitimate Chain.")
                 //Append A Block
                 return (.chainableBlock, lastBlock, self.currentDifficultyAsNonceLeadingZeroLength)
             } else {
                 /*
                  Block is NOT To Chain Next.
                  */
-                Log("New Block is NOT Chained Cached Last Block.")
+                Log("No, New Block is NOT Chained Cached Last Block.")
                 if let secondaryCandidateAsDictionary = lastBlock.fetchSecondaryCandidate(),
-                   let secondaryCandidateBlock = Block.block(from: secondaryCandidateAsDictionary, book: self, node: node) {
+                   let secondaryCandidateBlock = Block.block(from: secondaryCandidateAsDictionary, book: self, node: node, chainable: .storeAsSecondaryCandidateBlock) {
                     Log("As There is Secondary Candidate Block.")
-                    Log("\(previousBlockHash) == \(secondaryCandidateBlock.hashedString)")
+                    LogEssential("Candidate Chain Chainable? \(previousBlockHash) == \(secondaryCandidateBlock.hashedString)")
                     if let secondaryCandidateBlockHashedString = secondaryCandidateBlock.hashedString, previousBlockHash.equal(secondaryCandidateBlockHashedString) {
                         /*
                          Lay Secondary Candidate Block First As The Block is Secondary Candidate Block's Next
                          
                          If Chain New Block to Secondary Candidate Block, and Remove Last Block.
                          */
-                        Log("Block is Secondary Candidate Block's Next.")
+                        LogEssential("Yes, The Block Chainable with Candidate Chain.")
                         return (.secondaryCandidateBlocksNext, secondaryCandidateBlock, secondaryCandidateBlock.nextDifficulty)
+                    } else {
+                        LogEssential("No")
                     }
                 }
                 Log(self.blocks.endIndex)
@@ -268,23 +310,23 @@ public struct Book {
                  */
                 let indexBeforeLastBlock = 2    //2 before it.
                 let beforeLastBlock = self.blocks[self.blocks.endIndex - indexBeforeLastBlock]
-                Log("\(previousBlockHash) == \(beforeLastBlock.hashedString)")
+                LogEssential("Should Store as Candidate Block? \(previousBlockHash) == \(beforeLastBlock.hashedString)")
                 if let beforeLastBlockHashedString = beforeLastBlock.hashedString, self.blocks.endIndex >= indexBeforeLastBlock, previousBlockHash.equal(beforeLastBlockHashedString) {
                     /*
                      Chain to Second Last Block As The Block's Previous Block Hash.
                      
                      Function detect whether same previous block to chain the block.
                      */
-                    Log("Store As Secondary Candidate Block.")
+                    LogEssential("Yes, The Block Store As Secondary Candidate Block.")
                     return (.storeAsSecondaryCandidateBlock, beforeLastBlock, beforeLastBlock.nextDifficulty)
                 } else {
-                    Log("The Block to Trash. (Omit the Block.")
+                    LogEssential("No, The Block to Trash as Do Not Apply to Legitimate Chain, Candidate Chain, New Candidate.")
                     //The Block to Trash.(Omit the Block.)
                     return (.omitBlock, Block(Null: ""), Int.max)
                 }
             }
         }
-        Log("The Block to Trash. (Omit the Block.")
+        LogEssential("The Block to Trash as invalid last block in legitimate Chain.")
         return (.omitBlock, Block(Null: ""), Int.max)
     }
     
