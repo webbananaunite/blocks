@@ -248,7 +248,8 @@ public struct Fact: Transaction {
         self.claimObject = ClaimOnFact.Object(destination: "")
         self.signature = nil
         self.publicKey = nil
-        self.book = Book(signature: Data.DataNull, currentDifficultyAsNonceLeadingZeroLength: 0)
+//        self.book = Book(signature: Data.DataNull, currentDifficultyAsNonceLeadingZeroLength: 0)
+        self.book = Book(signature: Data.DataNull)
         self.signer = Signer()
     }
 
@@ -266,6 +267,7 @@ public struct Fact: Transaction {
         self.withdrawalDhtAddressOnLeft = withdrawalDhtAddressOnLeft
         self.creditOnRight = creditOnRight
         self.depositDhtAddressOnRight = depositDhtAddressOnRight
+        self.date = date
 
         if transactionId == nil {
             Log()
@@ -279,7 +281,6 @@ public struct Fact: Transaction {
             Log()
             self.transactionId = transactionId
         }
-        self.date = date
         if signature != nil {
             self.signature = signature
         } else {

@@ -248,18 +248,21 @@ public enum Command: String, CommandProtocol {
                 let id = blockAsDictionary["id"] as? String,
                 let candidateNextDifficulty = blockAsDictionary["nextDifficulty"] as? String,
                 let candidateNextDifficultyAsInt = Int(candidateNextDifficulty),
+               let candidateDifficultyAsNonceLeadingZeroLength = blockAsDictionary["difficultyAsNonceLeadingZeroLength"] as? String,
+               let candidateDifficultyAsNonceLeadingZeroLengthAsInt = Int(candidateDifficultyAsNonceLeadingZeroLength),
+
                 let previousBlockHash = blockAsDictionary["previousBlockHash"] as? String,
                 let signatureForBlockAsData = signatureForBlock.base64DecodedData,
                 let transactionsAsJsonArrayString = transactions.dictionarysToJsonString {
                 Log(transactions)
                 Log("transactionsAsJsonArrayString: \(transactionsAsJsonArrayString)")
                 Log("signatureForBlock: \(signatureForBlock)")
-                
+                LogEssential("Received Block's difficulties: \(candidateDifficultyAsNonceLeadingZeroLengthAsInt) - \(candidateNextDifficultyAsInt)")
                 /*
                  どこにchainするかによって、paddingzerolength 値を変える
                  */
-                let (chainable, previousBlock, nextDifficulty) = (node as! Node).book.chainable(previousBlockHash: previousBlockHash, signatureForBlock: signatureForBlockAsData, node: (node as! Node))
-                LogEssential("\(chainable) block id: \(id) previousBlockHash: \(previousBlockHash)")
+                let (chainable, previousBlock, nextDifficulty, branchHashString, indexInBranchChain) = (node as! Node).book.chainable(previousBlockHash: previousBlockHash, signatureForBlock: signatureForBlockAsData, node: (node as! Node))
+                LogEssential("\(chainable) block id: \(id) previousBlockHash: \(previousBlockHash) nextDifficulty: \(nextDifficulty) branchHashString: \(branchHashString) indexInBranchChain: \(indexInBranchChain)")
                 switch chainable {
                 case .secondaryCandidateBlocksNext:
                     /*
@@ -267,13 +270,13 @@ public enum Command: String, CommandProtocol {
                      If Chain New Block to Secondary Candidate Block, and Remove Last Block.
                      */
                     Log("Block is Secondary Candidate Block's Next.")
-                case .storeAsSecondaryCandidateBlock:
-                    /*
-                     Chain to Second Last Block As The Block's Previous Block Hash.
-                     
-                     Function detect whether same previous block to chain the block.
-                     */
-                    Log("Store As Secondary Candidate Block.")
+//                case .storeAsSecondaryCandidateBlock:
+//                    /*
+//                     Chain to Second Last Block As The Block's Previous Block Hash.
+//                     
+//                     Function detect whether same previous block to chain the block.
+//                     */
+//                    Log("Store As Secondary Candidate Block.")
                 case .chainableBlock:
                     /*
                      Block is To Chain Next.
@@ -294,11 +297,12 @@ public enum Command: String, CommandProtocol {
                      Nonce is OK.
                      */
                     Log("Valid Nonce.")
-                    guard var block = Block(maker: makerDhtAddressAsHexString, signature: signatureForBlockAsData, previousBlock: previousBlock, nonceAsData: nonceAsData, publicKey: publicKeyForBlockAsData, date: date, paddingZeroLengthForNonce: nextDifficulty, book: (node as! Node).book, id: id) else {
+                    guard var block = Block(maker: makerDhtAddressAsHexString, signature: signatureForBlockAsData, previousBlock: previousBlock, nonceAsData: nonceAsData, publicKey: publicKeyForBlockAsData, date: date, paddingZeroLengthForNonce: nextDifficulty, book: (node as! Node).book, id: id, chainable: chainable, previousBlockHash: branchHashString, indexInBranch: indexInBranchChain) else {
                         Log("Can NOT Construct Block.")
                         return nil
                     }
-                    let allValidTransactions = block.add(multipleMakerTransactions: transactions, node: node as! Node, chainable: chainable)
+//                    let allValidTransactions = block.add(multipleMakerTransactions: transactions, node: node as! Node, chainable: chainable)
+                    let allValidTransactions = block.add(multipleMakerTransactions: transactions, chainable: chainable, branchChainHash: branchHashString, indexInBranchChain: indexInBranchChain)
                     /*
                      As Protocol extension can not define settable property,
                      Do Downcast to Node.
@@ -309,7 +313,7 @@ public enum Command: String, CommandProtocol {
                     Log("-- \((node as! Node).book.blocks.count)")
                     if allValidTransactions {
                         Log("Block Have All Valid Transactions, cause Chain.")
-                        (node as! Node).book.chain(block: block, chainable: chainable, previousBlock: previousBlock, node: node as! Node)
+                        (node as! Node).book.chain(block: block, chainable: chainable, previousBlock: previousBlock, node: node as! Node, branchHashString: branchHashString, indexInBranch: indexInBranchChain)
                     } else {
                         Log("Block Have Invalid Transaction, cause NOT Chain.")
                     }
@@ -408,13 +412,19 @@ public enum Command: String, CommandProtocol {
             } else {
                 lastBlock = Block.genesis
             }
+//            guard let publickeyForNewBlockAsData = (node as! Node).signer()?.publicKeyAsData,
+//                  let publicKeyAsData = base64EncodedPublicKeyString.base64DecodedData,
+//                    var block = Block(maker: node.dhtAddressAsHexString, previousBlock: lastBlock, publicKey: publickeyForNewBlockAsData, date: Date.now.toUTCString, paddingZeroLengthForNonce: (node as! Node).book.currentDifficultyAsNonceLeadingZeroLength, book: (node as! Node).book) else {
             guard let publickeyForNewBlockAsData = (node as! Node).signer()?.publicKeyAsData,
                   let publicKeyAsData = base64EncodedPublicKeyString.base64DecodedData,
-                    var block = Block(maker: node.dhtAddressAsHexString, previousBlock: lastBlock, publicKey: publickeyForNewBlockAsData, date: Date.now.toUTCString, paddingZeroLengthForNonce: (node as! Node).book.currentDifficultyAsNonceLeadingZeroLength, book: (node as! Node).book) else {
+//                  let paddingZeroLengthForNonce = (node as! Node).book.lastBlock?.nextDifficulty,
+//                  let paddingZeroLengthForNonce = (node as! Node).book.takeNextDifficulty(for: .chainableBlock, previousBlockHash: lastBlock.hashedString, indexInBranch: ),
+                    var block = Block(maker: node.dhtAddressAsHexString, previousBlock: lastBlock, publicKey: publickeyForNewBlockAsData, date: Date.now.toUTCString, book: (node as! Node).book, chainable: .chainableBlock, previousBlockHash: nil, indexInBranch: nil) else {
                 return nil
             }
             let transactionsAsDictionaryArray = transactionsAsJsonArrayString.jsonToDictionaryArray
-            if block.add(singleMakerTransactions: transactionsAsDictionaryArray, makerDhtAddressAsHexString: makerDhtAddressAsHexString, publicKeyAsData: publicKeyAsData, node: node as! Node) {
+//            if block.add(singleMakerTransactions: transactionsAsDictionaryArray, makerDhtAddressAsHexString: makerDhtAddressAsHexString, publicKeyAsData: publicKeyAsData, node: node as! Node) {
+            if block.add(singleMakerTransactions: transactionsAsDictionaryArray, makerDhtAddressAsHexString: makerDhtAddressAsHexString, publicKeyAsData: publicKeyAsData, branchChainHash: nil, indexInBranchChain: nil) {
             } else {
                 return nil
             }

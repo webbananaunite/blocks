@@ -19,7 +19,8 @@ public extension overlayNetwork.NodeProtocol {
 }
 
 open class Node: overlayNetwork.Node {
-    public var book: Book = Book(signature: Data.DataNull, currentDifficultyAsNonceLeadingZeroLength: Nonce.defaultZeroLength) {
+//    public var book: Book = Book(signature: Data.DataNull, currentDifficultyAsNonceLeadingZeroLength: Nonce.defaultZeroLength) {
+    public var book: Book = Book(signature: Data.DataNull) {
         didSet {
             Log("fired didSet book")
             book.recordLibrary()
@@ -39,7 +40,7 @@ open class Node: overlayNetwork.Node {
         let signer = (node as! Node).signer().
      */
     public func signer() -> Signer? {
-        Log(_signer)
+        Log()
         if let signer = _signer {
         } else {
             _signer = Signer(newPrivateKeyOn: self.dhtAddressAsHexString)
@@ -81,12 +82,13 @@ open class Node: overlayNetwork.Node {
             let publicKeyForEncryptionAsData = publicKeyForEncryptionAsBase64String.base64DecodedData,
             let privateKeyForEncryptionAsBase64String = signInformation["privateKeyForEncryption"],
             let privateKeyForEncryptionAsData = privateKeyForEncryptionAsBase64String.base64DecodedData,
-            let dhtAddressAsHexString = signInformation["dhtAddressAsHexString"],
-            let currentDifficultyAsNonceLeadingZeroLength = bookInformation["currentDifficultyAsNonceLeadingZeroLength"], let currentDifficultyAsNonceLeadingZeroLengthAsInt = Int(currentDifficultyAsNonceLeadingZeroLength) {
+            let dhtAddressAsHexString = signInformation["dhtAddressAsHexString"]
+//            let currentDifficultyAsNonceLeadingZeroLength = bookInformation["currentDifficultyAsNonceLeadingZeroLength"], let currentDifficultyAsNonceLeadingZeroLengthAsInt = Int(currentDifficultyAsNonceLeadingZeroLength) 
+        {
             Log("Node Information is Restorable.")
             let signer = Signer(publicKeyForSignatureAsData: publicKeyForSignatureAsData, privateKeyForSignatureAsData: privateKeyForSignatureAsData, dhtAddressAsHexString: dhtAddressAsHexString, publicKeyForEncryptionAsData: publicKeyForEncryptionAsData, privateKeyForEncryptionAsData: privateKeyForEncryptionAsData)
             self.setSigner(signer: signer)
-            self.book.currentDifficultyAsNonceLeadingZeroLength = currentDifficultyAsNonceLeadingZeroLengthAsInt
+//            self.book.currentDifficultyAsNonceLeadingZeroLength = currentDifficultyAsNonceLeadingZeroLengthAsInt
             return true
         } else {
             Log("Node Properties is NOT Cached.")

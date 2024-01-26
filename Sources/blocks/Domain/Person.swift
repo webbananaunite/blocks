@@ -476,8 +476,8 @@ public extension Person {
      
      if personTransaction.duplicatedPerson(claimAsString: self.claim.rawValue, hashedName: claimObject.personalData.name, hashedBirth: claimObject.personalData.birth, hashedPhone: claimObject.personalData.phone, chainable: chainable)
      */
-//    func duplicatedPerson(claimAsString: String?, hashedName: String?, hashedBirth: String?, hashedPhone: String?, chainable: Book.ChainableResult) -> Bool {
-    func duplicatedPerson(chainable: Book.ChainableResult) -> Bool {
+//    func duplicatedPerson(chainable: Book.ChainableResult) -> Bool {
+    func duplicatedPerson(chainable: Book.ChainableResult, branchChainHash: HashedString?, indexInBranchChain: Int?) -> Bool {
         guard let claimObject = self.claimObject as? ClaimOnPerson.Object, let claimAsString = self.claim.rawValue else {
             LogEssential("incorrect transaction cause matchedSamePerson: false")
             return false
@@ -495,7 +495,7 @@ public extension Person {
             /*
              For Secondary Candidate Block, Duplicate Check will do exclude Last Block.
              */
-            if chainable == .storeAsSecondaryCandidateBlock {
+            if chainable == .secondaryCandidateBlocksNext {
                 Log()
                 if block.offset == self.book.blocks.count - 1 {
                     break
@@ -729,7 +729,8 @@ public struct ImplementedPerson: Person {
         self.claimObject = ClaimOnPerson.Object(destination: "")
         self.signature = nil
         self.publicKey = nil
-        self.book = Book(signature: Data.DataNull, currentDifficultyAsNonceLeadingZeroLength: 0)
+//        self.book = Book(signature: Data.DataNull, currentDifficultyAsNonceLeadingZeroLength: 0)
+        self.book = Book(signature: Data.DataNull)
         self.signer = Signer()
     }
 
@@ -747,7 +748,8 @@ public struct ImplementedPerson: Person {
         self.withdrawalDhtAddressOnLeft = withdrawalDhtAddressOnLeft
         self.creditOnRight = creditOnRight
         self.depositDhtAddressOnRight = depositDhtAddressOnRight
-        
+        self.date = date
+
         if transactionId == nil {
             Log()
             /*
@@ -760,7 +762,6 @@ public struct ImplementedPerson: Person {
             Log()
             self.transactionId = transactionId
         }
-        self.date = date
         if signature != nil {
             self.signature = signature
         } else {

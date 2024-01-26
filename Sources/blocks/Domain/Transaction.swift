@@ -132,9 +132,18 @@ public extension Transaction {
     
     var useAsHash: String {
         get {
-            if let signature = self.signature?.toString, let dateString = self.date?.utcTimeString, let claimObject = self.claimObject.toJsonString(signer: self.signer, peerSigner: self.peerSigner), let claim = self.claim.rawValue {
+//            Log(self.signature?.toString)
+//            Log(self.date?.utcTimeString)
+//            Log(self.claimObject.toJsonString(signer: self.signer, peerSigner: self.peerSigner))
+//            Log(self.claim.rawValue)
+            
+//            if let signature = self.signature?.toString, let dateString = self.date?.utcTimeString, let claimObject = self.claimObject.toJsonString(signer: self.signer, peerSigner: self.peerSigner), let claim = self.claim.rawValue {
+            if let dateString = self.date?.utcTimeString, let claimObject = self.claimObject.toJsonString(signer: self.signer, peerSigner: self.peerSigner), let claim = self.claim.rawValue {
+//                var json = """
+//{"date":"\(dateString)","type":"\(self.type.rawValue)","makerDhtAddressAsHexString":"\(self.makerDhtAddressAsHexString)","publicKey":"\(self.publicKey?.publicKeyToString ?? "")","claim":"\(claim)","claimObject":\(claimObject),"signature":"\(signature)"}
+//"""
                 var json = """
-{"date":"\(dateString)","type":"\(self.type.rawValue)","makerDhtAddressAsHexString":"\(self.makerDhtAddressAsHexString)","publicKey":"\(self.publicKey?.publicKeyToString ?? "")","claim":"\(claim)","claimObject":\(claimObject),"signature":"\(signature)"}
+{"date":"\(dateString)","type":"\(self.type.rawValue)","makerDhtAddressAsHexString":"\(self.makerDhtAddressAsHexString)","publicKey":"\(self.publicKey?.publicKeyToString ?? "")","claim":"\(claim)","claimObject":\(claimObject)"}
 """
                 Log(json)
                 //remove \n
@@ -254,7 +263,8 @@ public extension Transaction {
      Paper:
      5) ノードは、ブロック内のすべてのトランザクションが有効で、まだ使用されていない場合にのみブロックを受け入れます。 #now
      */
-    func validate(chainable: Book.ChainableResult = .chainableBlock) -> Bool {
+//    func validate(chainable: Book.ChainableResult = .chainableBlock) -> Bool {
+    func validate(chainable: Book.ChainableResult = .chainableBlock, branchChainHash: HashedString?, indexInBranchChain: Int?) -> Bool {
         Log()
         guard let contentData = self.claimObject.toJsonString(signer: self.signer, peerSigner: self.peerSigner)?.utf8DecodedData, let contentHashedData = contentData.hashedData?.toData, let signature = self.signature else {
             LogEssential("transaction signature false")
@@ -281,7 +291,7 @@ public extension Transaction {
                 LogEssential(self.claim.rawValue)
                 if let claimObject = self.claimObject as? ClaimOnPerson.Object, let personTransaction = self as? ImplementedPerson {
 //                    if personTransaction.duplicatedPerson(claimAsString: self.claim.rawValue, hashedName: claimObject.personalData.name, hashedBirth: claimObject.personalData.birth, hashedPhone: claimObject.personalData.phone, chainable: chainable) {
-                    if personTransaction.duplicatedPerson(chainable: chainable) {
+                    if personTransaction.duplicatedPerson(chainable: chainable, branchChainHash: branchChainHash, indexInBranchChain: indexInBranchChain) {
                         //Duplicated Person
                         LogEssential("Duplicate Birth as same Person.")
                         return false

@@ -37,14 +37,31 @@ public struct Block {
     public static let maxTransactionsInABlock = 32  //Exclude Booker fee and (monthly, annual) known transaction Periodically  (ex. Basic income)
     
     var id: BlockIdentification
-    private func setupId() -> BlockIdentification {
+    private func setupId() -> BlockIdentification? {
         /*
          block内Transactionすべての内容と現在時間をハッシュしてUniqueな文字列を生成する
          */
+        var blockContentString = """
+"date":"\(self.date.utcTimeString)",
+"maker":"\(self.maker)",
+"type":"\(self.type.rawValue)",
+"signature":"\(self.signature?.toString ?? "")",
+"previousBlockHash":"\(self.previousBlockHash)",
+"previousBlockNonce":"\(self.previousBlockNonce.asHex)",
+"previousBlockDifficulty":"\(self.previousBlockDifficulty)",
+"nextDifficulty":"\(self.nextDifficulty)",
+"nonce":"\(self.nonce.asHex)",
+"difficultyAsNonceLeadingZeroLength":"\(self.difficultyAsNonceLeadingZeroLength)",
+"publicKey":"\(self.publicKey.publicKeyToString)"
+"""
+        //remove \n
+        blockContentString = blockContentString.removeNewLineChars
         let reducedTransactions = transactions.reduce("") {
             $1.useAsHash
         }
-        let hashedString = reducedTransactions.hashedStringAsHex?.toString ?? ""
+        LogEssential(blockContentString + reducedTransactions)
+        let hashedString = (blockContentString + reducedTransactions).hashedStringAsHex?.toString ?? nil
+        LogEssential(hashedString)
         return hashedString
     }
     
@@ -152,7 +169,7 @@ public struct Block {
          Json    内容
              ex. { blockId: xxx, date:yyyymmdd hhmmss.ss, maker: xxx, transactions: [transactions] }
      */
-    init?(date: String, maker: OverlayNetworkAddressAsHexString, signature: Signature, previousBlockHash: HashedString, previousBlockNonce: String, previousBlockDifficulty: Difficulty, nonceAsHex: String, publicKey: PublicKey, paddingZeroLength: Difficulty, book: Book, id: BlockIdentification? = nil) {
+    init?(date: String, maker: OverlayNetworkAddressAsHexString, signature: Signature, previousBlockHash: HashedString, previousBlockNonce: String, previousBlockDifficulty: Difficulty, nextDifficulty: Difficulty, nonceAsHex: String, publicKey: PublicKey, paddingZeroLength: Difficulty, book: Book, id: BlockIdentification? = nil) {
         Log()
         guard let previousNonceAsData = previousBlockNonce.hexadecimalDecodedData, let nonceAsData = nonceAsHex.hexadecimalDecodedData, let date = date.date else {
             return nil
@@ -164,10 +181,10 @@ public struct Block {
         self.previousBlockHash = previousBlockHash
         self.previousBlockNonce = Nonce(paddingZeroLength: previousBlockDifficulty, nonceAsData: previousNonceAsData)//#now
         self.previousBlockDifficulty = previousBlockDifficulty
-        /*
-         Update Next Difficulty
-         */
-        self.nextDifficulty = book.makeNextDifficulty(blockDate: date)
+        
+//        self.nextDifficulty = book.makeNextDifficulty(blockDate: date)
+        self.nextDifficulty = nextDifficulty
+
         self.nonce = Nonce(paddingZeroLength: paddingZeroLength, nonceAsData: nonceAsData)
         self.difficultyAsNonceLeadingZeroLength = paddingZeroLength
         self.publicKey = publicKey
@@ -176,32 +193,42 @@ public struct Block {
             self.id = id
         } else {
             self.id = ""
-            self.id = setupId()
+            guard let id = setupId() else {
+                return nil
+            }
+            self.id = id
         }
     }
 
-    init?(maker: OverlayNetworkAddressAsHexString, signature: Signature? = nil, previousBlock: Block, nonceAsData: Data? = nil, publicKey: PublicKey, date: String, paddingZeroLengthForNonce: Difficulty, book: Book, id: BlockIdentification? = nil) {
-        Log()
-        guard let previousBlockHash = previousBlock.hashedString, let date = date.date else {
+    init?(maker: OverlayNetworkAddressAsHexString, signature: Signature? = nil, previousBlock: Block, nonceAsData: Data? = nil, publicKey: PublicKey, date: String, paddingZeroLengthForNonce: Difficulty? = nil, book: Book, id: BlockIdentification? = nil, chainable: Book.ChainableResult, previousBlockHash: HashedString?, indexInBranch: Int?) {
+        LogEssential(chainable)
+        LogEssential(previousBlockHash)
+        LogEssential(previousBlock.hashedString)
+//        guard let previousBlockHash = previousBlock.hashedString, let date = date.date, let nextDifficulty = book.makeNextDifficulty(blockDate: date, chainable: chainable, previousBlockHash: previousBlockHash, indexInBranch: indexInBranch) else {
+//            return nil
+//        }
+        var hashAsPreviousBlockOrBranch: HashedString?
+        if let branchHash = previousBlockHash {
+            LogEssential("As Branch Chain")
+            hashAsPreviousBlockOrBranch = branchHash
+        } else {
+            LogEssential("As Legitimate Chain")
+            hashAsPreviousBlockOrBranch = previousBlock.hashedString
+        }
+        guard let previousBlockHashedString = previousBlock.hashedString, let date = date.date, let nextDifficulty = book.makeNextDifficulty(blockDate: date, chainable: chainable, previousBlockHash: hashAsPreviousBlockOrBranch, indexInBranch: indexInBranch) else {
             return nil
         }
         self.date = date
         self.maker = maker
         self.signature = signature
         self.previousBlockNonce = previousBlock.nonce
-        self.previousBlockHash = previousBlockHash
+//        self.previousBlockHash = previousBlockHash
+        self.previousBlockHash = previousBlockHashedString
+        
         self.previousBlockDifficulty = previousBlock.difficultyAsNonceLeadingZeroLength
-        /*
-         Update Next Difficulty
-         */
-        self.nextDifficulty = book.makeNextDifficulty(blockDate: date)
+        self.nextDifficulty = nextDifficulty
         self.publicKey = publicKey
         self.book = book
-        if let id = id {
-            self.id = id
-        } else {
-            self.id = ""
-        }
 
         /*
          Book標準タイミング：
@@ -213,16 +240,29 @@ public struct Block {
             ↓
             paddingZeroLength を１増やす
          */
-        self.difficultyAsNonceLeadingZeroLength = paddingZeroLengthForNonce
-        if let nonceAsData = nonceAsData {
+        if let paddingZeroLengthForNonce = paddingZeroLengthForNonce, let nonceAsData = nonceAsData {
+            self.difficultyAsNonceLeadingZeroLength = paddingZeroLengthForNonce
             self.nonce = Nonce(paddingZeroLength: paddingZeroLengthForNonce, preBlockNonce: previousBlockNonce, nonceAsData: nonceAsData)
         } else {
             /*
              Switchable Which Use CPU Power or GPU Power.
              */
-            self.nonce = Nonce(paddingZeroLength: paddingZeroLengthForNonce, preBlockNonce: previousBlockNonce)
+//            self.difficultyAsNonceLeadingZeroLength = nextDifficulty
+//            self.nonce = Nonce(paddingZeroLength: nextDifficulty, preBlockNonce: previousBlockNonce)
+            //#now 20240126 1743
+            Log(previousBlock.nextDifficulty)
+            self.difficultyAsNonceLeadingZeroLength = previousBlock.nextDifficulty
+            self.nonce = Nonce(paddingZeroLength: previousBlock.nextDifficulty, preBlockNonce: previousBlockNonce)
         }
-        self.id = setupId()
+        if let id = id {
+            self.id = id
+        } else {
+            self.id = ""
+            guard let id = setupId() else {
+                return nil
+            }
+            self.id = id
+        }
     }
 
     static let genesisBlockId = "000010000100001000011"
@@ -240,7 +280,8 @@ public struct Block {
         self.previousBlockHash = ""
         self.publicKey = Data.DataNull
         self.date = Date.null
-        self.book = Book(signature: Data.DataNull, currentDifficultyAsNonceLeadingZeroLength: 0)
+//        self.book = Book(signature: Data.DataNull, currentDifficultyAsNonceLeadingZeroLength: 0)
+        self.book = Book(signature: Data.DataNull)
         self.id = Block.genesisBlockId
     }
 
@@ -256,31 +297,35 @@ public struct Block {
         self.previousBlockHash = ""
         self.publicKey = Data.DataNull
         self.date = Date.null
-        self.book = Book(signature: Data.DataNull, currentDifficultyAsNonceLeadingZeroLength: 0)
+//        self.book = Book(signature: Data.DataNull, currentDifficultyAsNonceLeadingZeroLength: 0)
+        self.book = Book(signature: Data.DataNull)
         self.id = Block.nullBlockId
     }
 
-    public static func block(from dictionary: [String: Any], book: Book, node: Node, chainable: Book.ChainableResult) -> Block? {
+//    public static func block(from dictionary: [String: Any], book: Book, chainable: Book.ChainableResult) -> Block? {
+    /*
+    public static func block(from dictionary: [String: Any], book: Book, chainable: Book.ChainableResult, branchChainHash: HashedString?, indexInBranchChain: Int?) -> Block? {
         Log()
         if let date = dictionary["date"] as? String,
+            let id = dictionary["id"] as? String,
             let maker = dictionary["maker"] as? String,
             let signatureAsString = dictionary["signature"] as? String,
             let signature = signatureAsString.base64DecodedData,
             let previousBlockHash = dictionary["previousBlockHash"] as? String,
             let previousBlockNonce = dictionary["previousBlockNonce"] as? String,
             let previousBlockDifficulty = dictionary["previousBlockDifficulty"] as? String, let previousBlockDifficultyAsInt = Int(previousBlockDifficulty),
+            let nextDifficulty = dictionary["nextDifficulty"] as? String, let nextDifficultyAsInt = Int(nextDifficulty),
             let nonceAsHex = dictionary["nonce"] as? String,
             let difficultyAsNonceLeadingZeroLength = dictionary["difficultyAsNonceLeadingZeroLength"] as? String, let difficultyAsNonceLeadingZeroLengthAsInt = Int(difficultyAsNonceLeadingZeroLength),
             let publicKeyString = dictionary["publicKey"] as? String,
             let publicKey = publicKeyString.base64DecodedData,
             let transactions = dictionary["transactions"] as? [[String : Any]]
-//            let transactionsAsJsonArrayString = transactions.dictionarysToJsonString 
         {
             Log()
-            if var block = Block(date: date, maker: maker, signature: signature, previousBlockHash: previousBlockHash, previousBlockNonce: previousBlockNonce, previousBlockDifficulty: previousBlockDifficultyAsInt, nonceAsHex: nonceAsHex, publicKey: publicKey, paddingZeroLength: difficultyAsNonceLeadingZeroLengthAsInt, book: book) {
+            if var block = Block(date: date, maker: maker, signature: signature, previousBlockHash: previousBlockHash, previousBlockNonce: previousBlockNonce, previousBlockDifficulty: previousBlockDifficultyAsInt, nextDifficulty: nextDifficultyAsInt, nonceAsHex: nonceAsHex, publicKey: publicKey, paddingZeroLength: difficultyAsNonceLeadingZeroLengthAsInt, book: book, id: id) {
                 Log()
-//                if block.add(transactions: transactions, makerDhtAddressAsHexString: maker, publicKeyAsData: publicKey, node: node) {
-                if block.add(multipleMakerTransactions: transactions, node: node, chainable: chainable) {
+//                if block.add(multipleMakerTransactions: transactions, node: node, chainable: chainable) {
+                if block.add(multipleMakerTransactions: transactions, chainable: chainable, branchChainHash: branchChainHash, indexInBranchChain: indexInBranchChain) {
                     Log()
                     return block
                 }
@@ -289,7 +334,8 @@ public struct Block {
         Log()
         return nil
     }
-
+    */
+    
     /*
      Paper:
      consensus mechanism
@@ -340,7 +386,8 @@ public struct Block {
         ]
      }
      */
-    public mutating func add(multipleMakerTransactions transactionsAsDictionary: [[String : Any]]?, node: Node, chainable: Book.ChainableResult = .chainableBlock) -> Bool {
+//    public mutating func add(multipleMakerTransactions transactionsAsDictionary: [[String : Any]]?, chainable: Book.ChainableResult = .chainableBlock) -> Bool {
+    public mutating func add(multipleMakerTransactions transactionsAsDictionary: [[String : Any]]?, chainable: Book.ChainableResult = .chainableBlock, branchChainHash: HashedString?, indexInBranchChain: Int?) -> Bool {
         Log(transactionsAsDictionary)
         var addedAll = true
         transactionsAsDictionary?.forEach {
@@ -348,7 +395,8 @@ public struct Block {
             if let makerDhtAddressAsHexString = $0["makerDhtAddressAsHexString"] as? String, let publicKeyAsBase64String = $0["publicKey"] as? String,
                let publicKeyAsData: PublicKey = publicKeyAsBase64String.base64DecodedData {
                 Log()
-                let result = self.add(singleMakerTransactions: [$0], makerDhtAddressAsHexString: makerDhtAddressAsHexString, publicKeyAsData: publicKeyAsData, node: node, chainable: chainable)
+//                let result = self.add(singleMakerTransactions: [$0], makerDhtAddressAsHexString: makerDhtAddressAsHexString, publicKeyAsData: publicKeyAsData, chainable: chainable)
+                let result = self.add(singleMakerTransactions: [$0], makerDhtAddressAsHexString: makerDhtAddressAsHexString, publicKeyAsData: publicKeyAsData, chainable: chainable, branchChainHash: branchChainHash, indexInBranchChain: indexInBranchChain)
                 if !result {
                     addedAll = false
                 }
@@ -362,7 +410,8 @@ public struct Block {
      Add Single Owner's Transactions to Block.
      Use At Received PT (Publish Transaction) Command.
      */
-    public mutating func add(singleMakerTransactions transactionsAsDictionary: [[String : Any]]?, makerDhtAddressAsHexString: OverlayNetworkAddressAsHexString, publicKeyAsData: PublicKey, node: Node, chainable: Book.ChainableResult = .chainableBlock) -> Bool {
+//    public mutating func add(singleMakerTransactions transactionsAsDictionary: [[String : Any]]?, makerDhtAddressAsHexString: OverlayNetworkAddressAsHexString, publicKeyAsData: PublicKey, chainable: Book.ChainableResult = .chainableBlock) -> Bool {
+    public mutating func add(singleMakerTransactions transactionsAsDictionary: [[String : Any]]?, makerDhtAddressAsHexString: OverlayNetworkAddressAsHexString, publicKeyAsData: PublicKey, chainable: Book.ChainableResult = .chainableBlock, branchChainHash: HashedString?, indexInBranchChain: Int?) -> Bool {
         Log()
         guard let transactionsAsDictionary = transactionsAsDictionary else {
             return false
@@ -376,7 +425,7 @@ public struct Block {
             Log()
             if let transactionSignature = $0.signature, let transactionId = $0.transactionId, let date = $0.date, let publicKey = $0.publicKey {
                 Log()
-                let validTransactionCauseAdded = addTransaction(claim: $0.claim, claimObject: $0.claimObject, type: $0.type.rawValue, makerDhtAddressAsHexString: $0.makerDhtAddressAsHexString, signature: transactionSignature, publicKeyAsData: publicKey, transactionId: transactionId, date: date, chainable: chainable)
+                let validTransactionCauseAdded = addTransaction(claim: $0.claim, claimObject: $0.claimObject, type: $0.type.rawValue, makerDhtAddressAsHexString: $0.makerDhtAddressAsHexString, signature: transactionSignature, publicKeyAsData: publicKey, transactionId: transactionId, date: date, chainable: chainable, branchChainHash: branchChainHash, indexInBranchChain: indexInBranchChain)
                 if addedAll && validTransactionCauseAdded {
                     addedAll = true
                 } else {
@@ -412,7 +461,8 @@ public struct Block {
      &
      Add A Transaction to Block
      */
-    public mutating func addTransaction(claim: any Claim, claimObject: any ClaimObject, type: String, makerDhtAddressAsHexString: OverlayNetworkAddressAsHexString, signature: Signature, publicKeyAsData: PublicKey, transactionId: TransactionIdentification, date: Date, chainable: Book.ChainableResult) -> Bool {
+//    public mutating func addTransaction(claim: any Claim, claimObject: any ClaimObject, type: String, makerDhtAddressAsHexString: OverlayNetworkAddressAsHexString, signature: Signature, publicKeyAsData: PublicKey, transactionId: TransactionIdentification, date: Date, chainable: Book.ChainableResult) -> Bool {
+    public mutating func addTransaction(claim: any Claim, claimObject: any ClaimObject, type: String, makerDhtAddressAsHexString: OverlayNetworkAddressAsHexString, signature: Signature, publicKeyAsData: PublicKey, transactionId: TransactionIdentification, date: Date, chainable: Book.ChainableResult, branchChainHash: HashedString?, indexInBranchChain: Int?) -> Bool {
         Log()
         if isThereSameTransaction(signature: signature) {
             LogEssential("Duplicate Transaction in Block.")
@@ -436,7 +486,8 @@ public struct Block {
                 Log()
                 if let transaction = type.construct(claim: claim, claimObject: claimObject, makerDhtAddressAsHexString: makerDhtAddressAsHexString, publicKey: publicKeyAsData, signature: signatureData, book: self.book, signer: signer, transactionId: transactionId, date: date) {
                     Log(transaction.jsonString)
-                    if transaction.validate(chainable: chainable) {
+//                    if transaction.validate(chainable: chainable) {
+                    if transaction.validate(chainable: chainable, branchChainHash: branchChainHash, indexInBranchChain: indexInBranchChain) {
                         Log("Valid Transaction Cause Add to Block. \(transaction.transactionId)")
                         self.transactions += [transaction]
                         return true
@@ -698,12 +749,12 @@ public struct Block {
         Validate Block
         有効性チェックする
      */
-    public func validate(signature: Signature, signer: Signer, chainable: Book.ChainableResult = .chainableBlock) -> Bool {
+    public func validate(signature: Signature, signer: Signer, chainable: Book.ChainableResult = .chainableBlock, branchChainHash: HashedString?, indexInBranchChain: Int?) -> Bool {
         Log()
         var validated = true
         transactions.forEach {
             Log()
-            if $0.validate(chainable: chainable) {
+            if $0.validate(chainable: chainable, branchChainHash: branchChainHash, indexInBranchChain: indexInBranchChain) {
                 Log()
             } else {
                 Log()
@@ -743,76 +794,79 @@ public struct Block {
         return verifySucceeded
     }
 
+//    public func storeAsCandidate(blockid: String) {
+//        
+//    }
     /*
      Store Block to Device's Storage As Secondary Candidate.
      
      Format: Json
      */
-    private let archivedDirectory = NSSearchPathForDirectoriesInDomains(.applicationSupportDirectory, .userDomainMask, true).first! + "/block/"
-    private let archiveFile = "secondaryCandidateBlock.json"
-    private var archiveFilePath: String {
-        self.archivedDirectory + self.archiveFile
-    }
-    public func storeAsSecondaryCandidate() {
-        do {
-            if !FileManager.default.fileExists(atPath: self.archivedDirectory) {
-                do {
-                    try FileManager.default.createDirectory(atPath: self.archivedDirectory, withIntermediateDirectories: true, attributes: nil)
-                } catch {
-                    Log()
-                }
-            }
-            let storeUrl = URL(fileURLWithPath: self.archiveFilePath)
+//    private let archivedDirectory = NSSearchPathForDirectoriesInDomains(.applicationSupportDirectory, .userDomainMask, true).first! + "/block/"
+//    private let archiveFile = "secondaryCandidateBlock.json"
+//    private var archiveFilePath: String {
+//        self.archivedDirectory + self.archiveFile
+//    }
+//    public func storeAsSecondaryCandidate() {
+//        do {
+//            if !FileManager.default.fileExists(atPath: self.archivedDirectory) {
+//                do {
+//                    try FileManager.default.createDirectory(atPath: self.archivedDirectory, withIntermediateDirectories: true, attributes: nil)
+//                } catch {
+//                    Log()
+//                }
+//            }
+//            let storeUrl = URL(fileURLWithPath: self.archiveFilePath)
+//
+//            /*
+//             [
+//                {
+//                 "transactionId":"\(transactionId)",
+//                 "date":"\(dateString)",
+//                 "type":"\(self.type.rawValue)",
+//                 "makerDhtAddressAsHexString":"\(self.makerDhtAddressAsHexString)",
+//                 "contents":"\(self.content)",
+//                 "signature":"\(signature)",
+//                 "publicKey":"\(self.publicKey)"
+//                },
+//                ...
+//             ]
+//             */
+//            let jsonAsData = self.content
+//            LogEssential("\(jsonAsData.utf8String ?? "")")
+//            try jsonAsData.append(to: storeUrl, truncate: true)
+//        } catch {
+//            Log("Save Json Error \(error)")
+//        }
+//    }
 
-            /*
-             [
-                {
-                 "transactionId":"\(transactionId)",
-                 "date":"\(dateString)",
-                 "type":"\(self.type.rawValue)",
-                 "makerDhtAddressAsHexString":"\(self.makerDhtAddressAsHexString)",
-                 "contents":"\(self.content)",
-                 "signature":"\(signature)",
-                 "publicKey":"\(self.publicKey)"
-                },
-                ...
-             ]
-             */
-            let jsonAsData = self.content
-            LogEssential("\(jsonAsData.utf8String ?? "")")
-            try jsonAsData.append(to: storeUrl, truncate: true)
-        } catch {
-            Log("Save Json Error \(error)")
-        }
-    }
+//    public func isCachedForSecondaryCandidate() -> Bool {
+//        Log()
+//        if !FileManager.default.fileExists(atPath: self.archiveFilePath) {
+//            LogEssential("No Cached")
+//            return false
+//        }
+//        LogEssential("Cached")
+//        return true
+//    }
 
-    public func isCachedForSecondaryCandidate() -> Bool {
-        Log()
-        if !FileManager.default.fileExists(atPath: self.archiveFilePath) {
-            LogEssential("No Cached")
-            return false
-        }
-        LogEssential("Cached")
-        return true
-    }
-
-    public func fetchSecondaryCandidate() -> [String: Any]? {
-        Log()
-        if self.isCachedForSecondaryCandidate() {
-            Log()
-            do {
-                let url = URL(fileURLWithPath: self.archiveFilePath)
-                let data = try Data(contentsOf: url)
-                Log("\(data.utf8String ?? "")")
-                if let jsonAsString = data.utf8String {
-                    Log()
-                    return jsonAsString.jsonToAnyDictionary
-                }
-            } catch {
-                Log("Error Fetching Json Data: \(error)")
-            }
-        }
-        Log()
-        return nil
-    }
+//    public func fetchSecondaryCandidate() -> [String: Any]? {
+//        Log()
+//        if self.isCachedForSecondaryCandidate() {
+//            Log()
+//            do {
+//                let url = URL(fileURLWithPath: self.archiveFilePath)
+//                let data = try Data(contentsOf: url)
+//                Log("\(data.utf8String ?? "")")
+//                if let jsonAsString = data.utf8String {
+//                    Log()
+//                    return jsonAsString.jsonToAnyDictionary
+//                }
+//            } catch {
+//                Log("Error Fetching Json Data: \(error)")
+//            }
+//        }
+//        Log()
+//        return nil
+//    }
 }

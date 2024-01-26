@@ -259,7 +259,8 @@ public struct Mail: Transaction {
         self.claimObject = ClaimOnMail.Object(destination: "")
         self.signature = nil
         self.publicKey = nil
-        self.book = Book(signature: Data.DataNull, currentDifficultyAsNonceLeadingZeroLength: 0)
+//        self.book = Book(signature: Data.DataNull, currentDifficultyAsNonceLeadingZeroLength: 0)
+        self.book = Book(signature: Data.DataNull)
         self.signer = Signer()
     }
     
