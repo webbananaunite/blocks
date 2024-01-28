@@ -77,17 +77,21 @@ Use as exchangeable digital currency in cryptocurrency exchange is PROHIBITED.
 ## description
 ### words:
 - Baby Sitter
+
 As A Node Joinning Overlay Network in OSI Session Layer, At First, Take Baby Sitter Node's IP and Port From TXT Record in bind Server.  
 Then Send FS Command to Baby Sitter Node for any Entry in Distributed Hush Table (Code Protocol).  
 
 - Taker
+
 First of All, As Joinning blocks Block Chain Network in OSI Presentation/Application Layer, The Node Should Submit Application for Birth Registration to The Network.
 No There Administrator Node/Person In The Network, The Node Should Find Taker Node for Send AT (Ask For Taker) Claim as Publish Transaction.
 
 - Book
+
 What Wrote blocks Block Chain.
 
 - Booker
+
 The Booker Node Collect Non-Booked Transactions, Do Proof of Work as Calculate A Nonce, Publish Block.  
 As Firstest and Legitimate Nonce Value than Other Node, The Node be Booker.  
 The Booker Do Beheivier as Temporary Administrator of Book (blocks Block Chain) Up to Next Proof of Work.
