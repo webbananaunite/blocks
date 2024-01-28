@@ -475,6 +475,9 @@ public extension Person {
      ３等身以内のTakerは協力できない。
      
      if personTransaction.duplicatedPerson(claimAsString: self.claim.rawValue, hashedName: claimObject.personalData.name, hashedBirth: claimObject.personalData.birth, hashedPhone: claimObject.personalData.phone, chainable: chainable)
+     
+     #now personトランザクション数が増えると、重複チェックに時間がかかる　→方法を講じる必要ある
+
      */
 //    func duplicatedPerson(chainable: Book.ChainableResult) -> Bool {
     func duplicatedPerson(chainable: Book.ChainableResult, branchChainHash: HashedString?, indexInBranchChain: Int?) -> Bool {
@@ -495,7 +498,7 @@ public extension Person {
             /*
              For Secondary Candidate Block, Duplicate Check will do exclude Last Block.
              */
-            if chainable == .secondaryCandidateBlocksNext {
+            if chainable == .branchableBlock {
                 Log()
                 if block.offset == self.book.blocks.count - 1 {
                     break

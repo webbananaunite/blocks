@@ -264,7 +264,7 @@ public enum Command: String, CommandProtocol {
                 let (chainable, previousBlock, nextDifficulty, branchHashString, indexInBranchChain) = (node as! Node).book.chainable(previousBlockHash: previousBlockHash, signatureForBlock: signatureForBlockAsData, node: (node as! Node))
                 LogEssential("\(chainable) block id: \(id) previousBlockHash: \(previousBlockHash) nextDifficulty: \(nextDifficulty) branchHashString: \(branchHashString) indexInBranchChain: \(indexInBranchChain)")
                 switch chainable {
-                case .secondaryCandidateBlocksNext:
+                case .branchableBlock:
                     /*
                      Lay Secondary Candidate Block First As The Block is Secondary Candidate Block's Next
                      If Chain New Block to Secondary Candidate Block, and Remove Last Block.

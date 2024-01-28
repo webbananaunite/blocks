@@ -202,7 +202,7 @@ public struct Book {
                 }
                 LogEssential(chainable)
                 switch chainable {
-                case .secondaryCandidateBlocksNext:
+                case .branchableBlock:
                     LogEssential("The Block Chained as Candidate Branch Chain.")
                     /*
                      if branch length (other word, contained Blocks Count) over {chainSwapRuledBlockCount}, Swap the Branch to Legitimate Chain at Branch Point.
@@ -305,7 +305,7 @@ public struct Book {
                 #endif
                 Log()
                 //Store to Json File.
-                if chainable == .secondaryCandidateBlocksNext || chainable == .chainableBlock {
+                if chainable == .branchableBlock || chainable == .chainableBlock {
                     self.recordLibrary()
                 }
             }
@@ -411,10 +411,11 @@ public struct Book {
     }
     
     public enum ChainableResult {
-        case secondaryCandidateBlocksNext       //Block is Secondary Candidate Block's Next.
-//        case storeAsSecondaryCandidateBlock     //Store As Secondary Candidate Block.
+//        case secondaryCandidateBlocksNext       //Block is Secondary Candidate Block's Next.
+        case branchableBlock       //Block is To Chain in Branch Chain.
+        
         case omitBlock          //The Block to Trash.(Omit the Block.
-        case chainableBlock     //Block is To Chain Next.
+        case chainableBlock     //Block is To Chain in Legitimate Chain.
     }
     public mutating func chainable(previousBlockHash: HashedString, signatureForBlock: Signature, node: Node) -> (ChainableResult, Block, Difficulty, HashedString?, Int?) {
         Log("previousBlockHash: \(previousBlockHash)")
@@ -478,14 +479,14 @@ public struct Book {
             //                             */
             //                            let nextDifficulty = lastBlockInBranchChain.nextDifficulty
             //                            LogEssential("Yes, The Block Chainable with Branch Chain. \(lastBlockHash)[\(branchChain.offset)] - \(nextDifficulty)")
-            //                            return (.secondaryCandidateBlocksNext, lastBlockInBranchChain, nextDifficulty, branchChain.offset)
+            //                            return (.branchableBlock, lastBlockInBranchChain, nextDifficulty, branchChain.offset)
             //                        }
             //                    }
             //                }
             LogEssential("So, Should Store as Candidate any Branch Block? \(previousBlockHash)")
             if let (branchHash, indexInBranchChain, nextDifficulty, previousBlock) = self.branchAndIndex(previousBlockHash: previousBlockHash) {
                 LogEssential("Yes, The Block Store As Candidate Branch Block named \(branchHash).")
-                return (.secondaryCandidateBlocksNext, previousBlock, nextDifficulty, branchHash, indexInBranchChain)
+                return (.branchableBlock, previousBlock, nextDifficulty, branchHash, indexInBranchChain)
             }
             LogEssential("No, The Block Not Chainable to Candidate Branch Chain as Block hash: \(previousBlockHash).")
 //            Log(self.blocks.endIndex)
@@ -520,7 +521,7 @@ public struct Book {
      Take Next Difficulty Value for each Chainable.
      
      previousBlockHash:
-        if chainable is .secondaryCandidateBlocksNext, this is branchHash as Candidate Branch Chain's key.
+        if chainable is .branchableBlock, this is branchHash as Candidate Branch Chain's key.
      */
     public func takeNextDifficulty(for chainable: ChainableResult, previousBlockHash: HashedString?, indexInBranch: Int?) -> Difficulty? {
 //        var currentDifficultyAsNonceLeadingZeroLength: Difficulty?
@@ -528,7 +529,7 @@ public struct Book {
         LogEssential(previousBlockHash)
         LogEssential(indexInBranch)
         switch chainable {
-        case .secondaryCandidateBlocksNext:
+        case .branchableBlock:
 //            guard let secondaryCandidateAsDictionary = self.lastBlock?.fetchSecondaryCandidate(),
 //               let secondaryCandidateBlock = Block.block(from: secondaryCandidateAsDictionary, book: self, chainable: .storeAsSecondaryCandidateBlock) else {
 //                return nil
@@ -593,9 +594,9 @@ public struct Book {
     public func takeLastBlockDate(for chainable: ChainableResult, branchChainHash: HashedString?, indexInBranchChain: Int?) -> Date? {
 //        var lastBlockDate: Date?
         switch chainable {
-        case .secondaryCandidateBlocksNext:
+        case .branchableBlock:
 //            guard let secondaryCandidateAsDictionary = self.lastBlock?.fetchSecondaryCandidate(),
-//               let secondaryCandidateBlock = Block.block(from: secondaryCandidateAsDictionary, book: self, chainable: .secondaryCandidateBlocksNext) else {
+//               let secondaryCandidateBlock = Block.block(from: secondaryCandidateAsDictionary, book: self, chainable: .branchableBlock) else {
 //                return nil
 //            }
             guard let branchChainHash = branchChainHash?.toString, let indexInBranchChain = indexInBranchChain else {
