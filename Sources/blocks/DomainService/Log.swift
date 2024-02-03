@@ -10,7 +10,7 @@ import Foundation
 import UIKit
 
 public func Log(_ object: Any = "", functionName: String = #function, fileName: String = #file, lineNumber: Int = #line) {
-    #if DEBUG
+    #if false
     let className = (fileName as NSString).lastPathComponent
     /*
      Disable Logging in following Classes.
@@ -74,7 +74,7 @@ public func Dump(_ object: Any = "", functionName: String = #function, fileName:
 }
 
 public func DumpEssential(_ object: Any = "", functionName: String = #function, fileName: String = #file, lineNumber: Int = #line) {
-    #if false
+    #if DEBUG
     let className = (fileName as NSString).lastPathComponent
     let formatter = DateFormatter()
     formatter.dateFormat = "HH:mm:ss"

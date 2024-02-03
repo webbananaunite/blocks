@@ -17,7 +17,20 @@ public class Nonce {
     var asHex: String {      //binary As Hexa decimal String
         self.asBinary.hex()
     }
-    
+    public var compressedHexaDecimalString: String {
+        Log()
+        /*
+         重複文字は個数を渡すようにする
+         cf. f{19}0{2}a1
+         */
+        let compressedNonceAsString = self.asBinary.compressedString
+        Log(compressedNonceAsString)
+        return compressedNonceAsString
+    }
+    public func deCompressedData(compressedHexString: String) -> Data? {
+        return compressedHexString.decomressedData
+    }
+
     static let bits: UInt = 512
     static let bytes: UInt = 64
     static let hexStringLength = 128
@@ -131,7 +144,7 @@ public class Nonce {
      CPU Powered Calculate Nonce
      */
     private func makeNonce(preBlockNonce: Nonce) -> Data {
-        Log()
+        LogEssential("###Started Make Nonce Approach.")
         var candidateNonceValue: Data = Data.DataNull
         var addingExponent: UInt = 0
         var fixExponents: UInt? = nil
@@ -139,6 +152,7 @@ public class Nonce {
         for a: Int in -1..<nonceMaxBitLength {
             fixExponents = a >= 0 ? UInt(a) : nil
             makeNonce(addingExponent: &addingExponent, candidateNonceValue: &candidateNonceValue, fixExponent: &fixExponents, foundNonce: &foundNonce, preNonceAsData: preBlockNonce.asBinary)
+            Dump(candidateNonceValue)
             if foundNonce {
                 break
             } else {
@@ -153,9 +167,9 @@ public class Nonce {
                 addingExponent = fixexp + 1
             }
         }
-        Log("Finished Make Nonce Approach.")
-        Log(addingExponent)
-        DumpEssential(candidateNonceValue)
+        LogEssential("###Finished Make Nonce Approach.")
+        LogEssential(addingExponent)
+        LogEssential(candidateNonceValue.compressedString)
         return candidateNonceValue
     }
     #endif

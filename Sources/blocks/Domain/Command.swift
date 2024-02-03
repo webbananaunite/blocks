@@ -98,11 +98,13 @@ public enum Command: String, CommandProtocol {
         switch self {
             //Block chain
         case .publishTransaction:
-            return 4..<99
+//            return 4..<99
+            return 4..<9
         case .publishTransactionReply:
             return nil
         case .publishBlock:
-            return 6..<99
+//            return 6..<99
+            return 3..<4
         case .publishBlockReply:
             return nil
         case .fetchBlock:
@@ -171,9 +173,9 @@ public enum Command: String, CommandProtocol {
              0: type
              1: date
              2: blockAsJsonString
-             3: publickey base64 encoded
-             4: maker dht address
-             5: nonce as hexadecimal
+             x 3: publickey base64 encoded
+             x 4: maker dht address
+             x 5: nonce as hexadecimal
              */
             let type = operandArray[0]
             let date = operandArray[1]
@@ -193,12 +195,13 @@ public enum Command: String, CommandProtocol {
 //                }
 //            }
 //            Log(transactionsAsJsonArrayString)
-            let base64EncodedPublicKeyStringForBlock = operandArray[3]  //block maker's public key
-            let makerDhtAddressAsHexString = operandArray[4]
-            let nonceAsHexadecimal = operandArray[5]
+            
+//            let base64EncodedPublicKeyStringForBlock = operandArray[3]  //block maker's public key
+//            let makerDhtAddressAsHexString = operandArray[4]
+//            let nonceAsHexadecimal = operandArray[5]
             Log("date: \(date)")
-            Log("publicKey(Block): \(base64EncodedPublicKeyStringForBlock)")
-            Log("nonceAsHexadecimal: \(nonceAsHexadecimal)")
+//            Log("publicKey(Block): \(base64EncodedPublicKeyStringForBlock)")
+//            Log("nonceAsHexadecimal: \(nonceAsHexadecimal)")
             
             /*
              Blockを受け取った（先行Blockの初回）
@@ -237,19 +240,26 @@ public enum Command: String, CommandProtocol {
 //            let transactionsAsJsonArrayString = transactions?.dictionarysToJsonString
 //            Log(transactionsAsJsonArrayString)
 
-            if let nonceAsData = nonceAsHexadecimal.hexadecimalDecodedData,
-                let blockAsDictionary = blockAsJsonString.jsonToAnyDictionary,
+            if let blockAsDictionary = blockAsJsonString.jsonToAnyDictionary,
                 let transactions = blockAsDictionary["transactions"] as? [[String : Any]],
 //                let base64EncodedPublicKeyStringForTransaction = transactions.first?["publicKey"] as? String,
 //                let publicKeyForTransactionAsData = base64EncodedPublicKeyStringForTransaction.base64DecodedData,
+                    
+//                let publicKeyForBlockAsData = base64EncodedPublicKeyStringForBlock.base64DecodedData,
+                let base64EncodedPublicKeyStringForBlock = blockAsDictionary["publicKey"] as? String,
                 let publicKeyForBlockAsData = base64EncodedPublicKeyStringForBlock.base64DecodedData,
+                // let nonceAsData = nonceAsHexadecimal.hexadecimalDecodedData,
+                let nonceAsCompressedString = blockAsDictionary["nonce"] as? String,
+                let nonceAsData = nonceAsCompressedString.decomressedData,
+                let makerDhtAddressAsHexString = blockAsDictionary["maker"] as? String,
+                    
 //                let makerDhtAddressAsHexStringForTransaction = transactions.first?["makerDhtAddressAsHexString"] as? String,
                 let signatureForBlock = blockAsDictionary["signature"] as? String,
                 let id = blockAsDictionary["id"] as? String,
                 let candidateNextDifficulty = blockAsDictionary["nextDifficulty"] as? String,
                 let candidateNextDifficultyAsInt = Int(candidateNextDifficulty),
-               let candidateDifficultyAsNonceLeadingZeroLength = blockAsDictionary["difficultyAsNonceLeadingZeroLength"] as? String,
-               let candidateDifficultyAsNonceLeadingZeroLengthAsInt = Int(candidateDifficultyAsNonceLeadingZeroLength),
+                let candidateDifficultyAsNonceLeadingZeroLength = blockAsDictionary["difficultyAsNonceLeadingZeroLength"] as? String,
+                let candidateDifficultyAsNonceLeadingZeroLengthAsInt = Int(candidateDifficultyAsNonceLeadingZeroLength),
 
                 let previousBlockHash = blockAsDictionary["previousBlockHash"] as? String,
                 let signatureForBlockAsData = signatureForBlock.base64DecodedData,

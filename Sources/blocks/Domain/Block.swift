@@ -59,7 +59,7 @@ public struct Block {
         let reducedTransactions = transactions.reduce("") {
             $1.useAsHash
         }
-        LogEssential(blockContentString + reducedTransactions)
+        Log(blockContentString + reducedTransactions)
         let hashedString = (blockContentString + reducedTransactions).hashedStringAsHex?.toString ?? nil
         LogEssential(hashedString)
         return hashedString
@@ -156,8 +156,13 @@ public struct Block {
         self.nonce = Nonce(preBlockNonce: self.previousBlockNonce)
     }
     
+    /*
+     Caution:
+     Make Compressed HexaDecimal String cause This Function Comsume very large Time.
+     */
     var hashedString: HashedString? {
-        if let contentAsUtf8String = self.content.utf8String {
+//        if let contentAsUtf8String = self.content.utf8String {
+        if let contentAsUtf8String = self.contentAsNoCompressed.utf8String {
             return contentAsUtf8String.hashedStringAsHex
         }
         return nil
@@ -179,7 +184,7 @@ public struct Block {
         self.maker = maker
         self.signature = signatureAsData
         self.previousBlockHash = previousBlockHash
-        self.previousBlockNonce = Nonce(paddingZeroLength: previousBlockDifficulty, nonceAsData: previousNonceAsData)//#now
+        self.previousBlockNonce = Nonce(paddingZeroLength: previousBlockDifficulty, nonceAsData: previousNonceAsData)
         self.previousBlockDifficulty = previousBlockDifficulty
         
 //        self.nextDifficulty = book.makeNextDifficulty(blockDate: date)
@@ -601,8 +606,9 @@ public struct Block {
             let contentAsData = self.content
             Log("contents: \(contentAsData.utf8String)")    //平文
             Log(contentAsData.utf8String)
-            let operands = [self.type.rawValue, self.date.toUTCString, contentAsData.utf8String, signer.base64EncodedPublicKeyForSignatureString, self.maker.toString, self.nonce.asHex]
-            
+//            let operands = [self.type.rawValue, self.date.toUTCString, contentAsData.utf8String, signer.base64EncodedPublicKeyForSignatureString, self.maker.toString, self.nonce.asHex]
+            let operands = [self.type.rawValue, self.date.toUTCString, contentAsData.utf8String]
+
             //↓ オペランドを圧縮する場合
             //                Log(self.content.count)
             //                let nsData: NSData = NSData(data: self.content)
@@ -669,9 +675,50 @@ public struct Block {
     }
 
     /*
+     Caution:
+     Make Compressed HexaDecimal String cause This Function Comsume very large Time.
+
      utf8 →Data
      */
     var content: Data {
+        var jsonString = """
+{"id":"\(self.id)",
+"date":"\(self.date.utcTimeString)",
+"maker":"\(self.maker)",
+"type":"\(self.type.rawValue)",
+"signature":"\(self.signature?.toString ?? "")",
+"previousBlockHash":"\(self.previousBlockHash)",
+"previousBlockNonce":"\(self.previousBlockNonce.compressedHexaDecimalString)",
+"previousBlockDifficulty":"\(self.previousBlockDifficulty)",
+"nextDifficulty":"\(self.nextDifficulty)",
+"nonce":"\(self.nonce.compressedHexaDecimalString)",
+"difficultyAsNonceLeadingZeroLength":"\(self.difficultyAsNonceLeadingZeroLength)",
+"publicKey":"\(self.publicKey.publicKeyToString)"
+"""
+        
+        jsonString += transactions.enumerated().reduce("") {
+//            Log($1.offset)
+            var leadPadding = ""
+            var trailPadding = ","
+            if $1.offset == 0 {
+                leadPadding = ",\"transactions\":["
+            }
+            if $1.offset == transactions.count - 1 {
+                trailPadding = "]"
+            }
+            return $0 + leadPadding + $1.element.jsonString + trailPadding
+        }
+        jsonString += "}"
+        //remove \n
+        jsonString = jsonString.removeNewLineChars
+        let data = jsonString.utf8DecodedData
+        if let data = data {
+            return data
+        }
+        return Data.DataNull
+    }
+    
+    var contentAsNoCompressed: Data {
         var jsonString = """
 {"id":"\(self.id)",
 "date":"\(self.date.utcTimeString)",
@@ -708,7 +755,7 @@ public struct Block {
         }
         return Data.DataNull
     }
-
+    
     var contentForSignAndValidate: Data {
         var jsonString = """
 {"id":"\(self.id)",

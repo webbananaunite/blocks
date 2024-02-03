@@ -39,5 +39,13 @@ extension Data {
     var toUint8Array: [UInt8] {
         return [UInt8](self)
     }
-    
+
+    /*
+     Use for Nonce Data Mainly
+     */
+    var compressedString: String {
+        let hexString = self.hex()
+        let compressedHexDecimalString = hexString.compressedHexDecimalString
+        return compressedHexDecimalString
+    }
 }

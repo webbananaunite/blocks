@@ -264,11 +264,15 @@ public struct Book {
                      New Block As Cached Last Block's Next.
                      */
                     LogEssential("The Block Chained in Legitimate Chain.")
-                    LogEssential("\(block.hashedString)")
-                    LogEssential(block.content.utf8String)
+//                    Log("\(block.hashedString)")
+//                    Log(block.content.utf8String)
                     //Append A Block
                     self.blocks += [block]
 //                    Log(self.lastBlock)
+                    /*
+                     過去３つより前の block hash を起点としたbranchを全て削除する
+                     */
+                    self.reduceBranch()
                 case .omitBlock:
                     break
                 }
@@ -308,6 +312,59 @@ public struct Book {
                 if chainable == .branchableBlock || chainable == .chainableBlock {
                     self.recordLibrary()
                 }
+            }
+        }
+    }
+    
+    public mutating func reduceBranch() {
+        LogEssential()
+        /*
+         Block is Confirmed As There following 4 Blocks, Remove All Branch Chains Rooted Block Before Confirmed Block.
+
+         Block Array in Legitimate Chain
+         blocks[0]　←Confirmed
+            [1]
+            [2]
+            [3]
+            [4]
+         candidates[{Branch Point 0}][0]
+            [{Branch Point 0}][0][1]
+            [{Branch Point 2}][0]
+         
+         ↓
+         Add 1 Block in Legitimate Chain
+         blocks[0]　←Confirmed
+            [1]　←Confirmed
+            [2]
+            [3]
+            [4]
+            [5]
+         candidates[{Branch Point 0}][0]
+            [{Branch Point 0}][0][1]
+            [{Branch Point 2}][0]
+         
+         ↓
+         Reduced Branches
+         blocks[0]　←Confirmed
+            [1]　←Confirmed
+            [2]
+            [3]
+            [4]
+            [5]
+         candidates[{Branch Point 2}][0]
+         */
+        LogEssential(self.blocks.endIndex)
+        let blockBeforeConfirmedBlockIndex = self.blocks.endIndex - (self.chainSwapRuledBlockCount + 2)
+        LogEssential(blockBeforeConfirmedBlockIndex)
+        if blockBeforeConfirmedBlockIndex >= 0 {
+            LogEssential()
+            let block = self.blocks[blockBeforeConfirmedBlockIndex]
+            if let blockHashedString = block.hashedString?.toString, let _ = self.candidates[blockHashedString] {
+                /*
+                 Delete Same Start Point Branch Chains, Entire Root.
+                 */
+                LogEssential(blockHashedString)
+                self.candidates.removeValue(forKey: blockHashedString)
             }
         }
     }
@@ -377,18 +434,18 @@ public struct Book {
         //There is NOT Branch named {previousBlockHash}.
         LogEssential("There is NOT Branch named \(previousBlockHash.toString)")
         /*
-         Take Branch Point in Legitimate Chain.
+         Confirm Available as Branch Point in Legitimate Chain.
          */
         if let indexInLegitimateChain = self.findBranchPointInLegitimateChain(branchHashedString: previousBlockHash) {
-            //Top branch as Start
-            LogEssential("Found Available Branch Point for \(previousBlockHash.toString) til before 4 last in Legitimate Chain")
+            LogEssential("Found Available as Branch Point for \(previousBlockHash.toString) til before 4 last in Legitimate Chain")
             previousBlock = self.blocks[indexInLegitimateChain]
             nextDifficulty = self.blocks[indexInLegitimateChain].nextDifficulty
             self.candidates[previousBlockHash.toString] = [[Block]]()
             indexInBranch = 0
             LogEssential("First Block in Branch named \(previousBlockHash.toString)")
-            LogEssential("\(previousBlockHash) - \(indexInLegitimateChain) - \(nextDifficulty) - \(previousBlock.content)")
-            return (previousBlockHash, indexInLegitimateChain, nextDifficulty, previousBlock)
+            LogEssential("\(previousBlockHash) - \(indexInBranch) - \(nextDifficulty) - \(previousBlock.content.utf8String)")
+//            return (previousBlockHash, indexInLegitimateChain, nextDifficulty, previousBlock)
+            return (previousBlockHash, indexInBranch, nextDifficulty, previousBlock)
         }
         return nil
     }
@@ -466,7 +523,7 @@ public struct Book {
             /*
              Block Not Chainable to Legitimate Chain.
              */
-            Log("No, New Block is NOT Chainable to Legitimate Chain.")
+            LogEssential("No, New Block is NOT Chainable to Legitimate Chain.")
             //                if let branchChains = self.candidates[previousBlockHash.toString], branchChains.count > 0 {
             //                    Log("There is The Branch Chain for \(previousBlockHash).")
             //                    for branchChain in branchChains.enumerated() {
@@ -483,7 +540,7 @@ public struct Book {
             //                        }
             //                    }
             //                }
-            LogEssential("So, Should Store as Candidate any Branch Block? \(previousBlockHash)")
+            LogEssential("So, Should Store as Candidate any Branch Chain? \(previousBlockHash)")
             if let (branchHash, indexInBranchChain, nextDifficulty, previousBlock) = self.branchAndIndex(previousBlockHash: previousBlockHash) {
                 LogEssential("Yes, The Block Store As Candidate Branch Block named \(branchHash).")
                 return (.branchableBlock, previousBlock, nextDifficulty, branchHash, indexInBranchChain)
