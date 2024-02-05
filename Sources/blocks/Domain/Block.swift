@@ -161,7 +161,6 @@ public struct Block {
      Make Compressed HexaDecimal String cause This Function Comsume very large Time.
      */
     var hashedString: HashedString? {
-//        if let contentAsUtf8String = self.content.utf8String {
         if let contentAsUtf8String = self.contentAsNoCompressed.utf8String {
             return contentAsUtf8String.hashedStringAsHex
         }
@@ -186,8 +185,6 @@ public struct Block {
         self.previousBlockHash = previousBlockHash
         self.previousBlockNonce = Nonce(paddingZeroLength: previousBlockDifficulty, nonceAsData: previousNonceAsData)
         self.previousBlockDifficulty = previousBlockDifficulty
-        
-//        self.nextDifficulty = book.makeNextDifficulty(blockDate: date)
         self.nextDifficulty = nextDifficulty
 
         self.nonce = Nonce(paddingZeroLength: paddingZeroLength, nonceAsData: nonceAsData)
@@ -205,29 +202,17 @@ public struct Block {
         }
     }
 
-    init?(maker: OverlayNetworkAddressAsHexString, signature: Signature? = nil, previousBlock: Block, nonceAsData: Data? = nil, publicKey: PublicKey, date: String, paddingZeroLengthForNonce: Difficulty? = nil, book: Book, id: BlockIdentification? = nil, chainable: Book.ChainableResult, previousBlockHash: HashedString?, indexInBranch: Int?) {
+    init?(maker: OverlayNetworkAddressAsHexString, signature: Signature? = nil, previousBlock: Block, nonceAsData: Data? = nil, publicKey: PublicKey, date: String, paddingZeroLengthForNonce: Difficulty? = nil, book: Book, id: BlockIdentification? = nil, chainable: Book.ChainableResult, previousBlockHash: HashedString?, indexInBranchPoint: Int?, branchHash: HashedString?, indexInBranchChain: Int?) {
         LogEssential(chainable)
         LogEssential(previousBlockHash)
         LogEssential(previousBlock.hashedString)
-//        guard let previousBlockHash = previousBlock.hashedString, let date = date.date, let nextDifficulty = book.makeNextDifficulty(blockDate: date, chainable: chainable, previousBlockHash: previousBlockHash, indexInBranch: indexInBranch) else {
-//            return nil
-//        }
-        var hashAsPreviousBlockOrBranch: HashedString?
-        if let branchHash = previousBlockHash {
-            LogEssential("As Branch Chain")
-            hashAsPreviousBlockOrBranch = branchHash
-        } else {
-            LogEssential("As Legitimate Chain")
-            hashAsPreviousBlockOrBranch = previousBlock.hashedString
-        }
-        guard let previousBlockHashedString = previousBlock.hashedString, let date = date.date, let nextDifficulty = book.makeNextDifficulty(blockDate: date, chainable: chainable, previousBlockHash: hashAsPreviousBlockOrBranch, indexInBranch: indexInBranch) else {
+        guard let previousBlockHashedString = previousBlock.hashedString, let date = date.date, let nextDifficulty = book.makeNextDifficulty(blockDate: date, chainable: chainable, previousBlockHash: previousBlockHash, indexInBranchPoint: indexInBranchPoint, branchPoint: branchHash, indexInBranchChain: indexInBranchChain) else {
             return nil
         }
         self.date = date
         self.maker = maker
         self.signature = signature
         self.previousBlockNonce = previousBlock.nonce
-//        self.previousBlockHash = previousBlockHash
         self.previousBlockHash = previousBlockHashedString
         
         self.previousBlockDifficulty = previousBlock.difficultyAsNonceLeadingZeroLength
@@ -252,9 +237,6 @@ public struct Block {
             /*
              Switchable Which Use CPU Power or GPU Power.
              */
-//            self.difficultyAsNonceLeadingZeroLength = nextDifficulty
-//            self.nonce = Nonce(paddingZeroLength: nextDifficulty, preBlockNonce: previousBlockNonce)
-            //#now 20240126 1743
             Log(previousBlock.nextDifficulty)
             self.difficultyAsNonceLeadingZeroLength = previousBlock.nextDifficulty
             self.nonce = Nonce(paddingZeroLength: previousBlock.nextDifficulty, preBlockNonce: previousBlockNonce)
@@ -285,7 +267,6 @@ public struct Block {
         self.previousBlockHash = ""
         self.publicKey = Data.DataNull
         self.date = Date.null
-//        self.book = Book(signature: Data.DataNull, currentDifficultyAsNonceLeadingZeroLength: 0)
         self.book = Book(signature: Data.DataNull)
         self.id = Block.genesisBlockId
     }
@@ -302,7 +283,6 @@ public struct Block {
         self.previousBlockHash = ""
         self.publicKey = Data.DataNull
         self.date = Date.null
-//        self.book = Book(signature: Data.DataNull, currentDifficultyAsNonceLeadingZeroLength: 0)
         self.book = Book(signature: Data.DataNull)
         self.id = Block.nullBlockId
     }
@@ -391,7 +371,6 @@ public struct Block {
         ]
      }
      */
-//    public mutating func add(multipleMakerTransactions transactionsAsDictionary: [[String : Any]]?, chainable: Book.ChainableResult = .chainableBlock) -> Bool {
     public mutating func add(multipleMakerTransactions transactionsAsDictionary: [[String : Any]]?, chainable: Book.ChainableResult = .chainableBlock, branchChainHash: HashedString?, indexInBranchChain: Int?) -> Bool {
         Log(transactionsAsDictionary)
         var addedAll = true
@@ -400,7 +379,6 @@ public struct Block {
             if let makerDhtAddressAsHexString = $0["makerDhtAddressAsHexString"] as? String, let publicKeyAsBase64String = $0["publicKey"] as? String,
                let publicKeyAsData: PublicKey = publicKeyAsBase64String.base64DecodedData {
                 Log()
-//                let result = self.add(singleMakerTransactions: [$0], makerDhtAddressAsHexString: makerDhtAddressAsHexString, publicKeyAsData: publicKeyAsData, chainable: chainable)
                 let result = self.add(singleMakerTransactions: [$0], makerDhtAddressAsHexString: makerDhtAddressAsHexString, publicKeyAsData: publicKeyAsData, chainable: chainable, branchChainHash: branchChainHash, indexInBranchChain: indexInBranchChain)
                 if !result {
                     addedAll = false
@@ -415,7 +393,6 @@ public struct Block {
      Add Single Owner's Transactions to Block.
      Use At Received PT (Publish Transaction) Command.
      */
-//    public mutating func add(singleMakerTransactions transactionsAsDictionary: [[String : Any]]?, makerDhtAddressAsHexString: OverlayNetworkAddressAsHexString, publicKeyAsData: PublicKey, chainable: Book.ChainableResult = .chainableBlock) -> Bool {
     public mutating func add(singleMakerTransactions transactionsAsDictionary: [[String : Any]]?, makerDhtAddressAsHexString: OverlayNetworkAddressAsHexString, publicKeyAsData: PublicKey, chainable: Book.ChainableResult = .chainableBlock, branchChainHash: HashedString?, indexInBranchChain: Int?) -> Bool {
         Log()
         guard let transactionsAsDictionary = transactionsAsDictionary else {
@@ -466,7 +443,6 @@ public struct Block {
      &
      Add A Transaction to Block
      */
-//    public mutating func addTransaction(claim: any Claim, claimObject: any ClaimObject, type: String, makerDhtAddressAsHexString: OverlayNetworkAddressAsHexString, signature: Signature, publicKeyAsData: PublicKey, transactionId: TransactionIdentification, date: Date, chainable: Book.ChainableResult) -> Bool {
     public mutating func addTransaction(claim: any Claim, claimObject: any ClaimObject, type: String, makerDhtAddressAsHexString: OverlayNetworkAddressAsHexString, signature: Signature, publicKeyAsData: PublicKey, transactionId: TransactionIdentification, date: Date, chainable: Book.ChainableResult, branchChainHash: HashedString?, indexInBranchChain: Int?) -> Bool {
         Log()
         if isThereSameTransaction(signature: signature) {
@@ -491,7 +467,6 @@ public struct Block {
                 Log()
                 if let transaction = type.construct(claim: claim, claimObject: claimObject, makerDhtAddressAsHexString: makerDhtAddressAsHexString, publicKey: publicKeyAsData, signature: signatureData, book: self.book, signer: signer, transactionId: transactionId, date: date) {
                     Log(transaction.jsonString)
-//                    if transaction.validate(chainable: chainable) {
                     if transaction.validate(chainable: chainable, branchChainHash: branchChainHash, indexInBranchChain: indexInBranchChain) {
                         Log("Valid Transaction Cause Add to Block. \(transaction.transactionId)")
                         self.transactions += [transaction]
@@ -606,7 +581,6 @@ public struct Block {
             let contentAsData = self.content
             Log("contents: \(contentAsData.utf8String)")    //平文
             Log(contentAsData.utf8String)
-//            let operands = [self.type.rawValue, self.date.toUTCString, contentAsData.utf8String, signer.base64EncodedPublicKeyForSignatureString, self.maker.toString, self.nonce.asHex]
             let operands = [self.type.rawValue, self.date.toUTCString, contentAsData.utf8String]
 
             //↓ オペランドを圧縮する場合
