@@ -173,9 +173,6 @@ public enum Command: String, CommandProtocol {
              0: type
              1: date
              2: blockAsJsonString
-             x 3: publickey base64 encoded
-             x 4: maker dht address
-             x 5: nonce as hexadecimal
              */
             let type = operandArray[0]
             let date = operandArray[1]
@@ -195,13 +192,7 @@ public enum Command: String, CommandProtocol {
 //                }
 //            }
 //            Log(transactionsAsJsonArrayString)
-            
-//            let base64EncodedPublicKeyStringForBlock = operandArray[3]  //block maker's public key
-//            let makerDhtAddressAsHexString = operandArray[4]
-//            let nonceAsHexadecimal = operandArray[5]
             Log("date: \(date)")
-//            Log("publicKey(Block): \(base64EncodedPublicKeyStringForBlock)")
-//            Log("nonceAsHexadecimal: \(nonceAsHexadecimal)")
             
             /*
              Blockを受け取った（先行Blockの初回）
@@ -222,7 +213,12 @@ public enum Command: String, CommandProtocol {
                 let base64EncodedPublicKeyStringForBlock = blockAsDictionary["publicKey"] as? String,
                 let publicKeyForBlockAsData = base64EncodedPublicKeyStringForBlock.base64DecodedData,
                 let nonceAsCompressedString = blockAsDictionary["nonce"] as? String,
+                nonceAsCompressedString.legitimateNonce,
                 let nonceAsData = nonceAsCompressedString.decomressedData,
+                let previousBlockNonceAsCompressedString = blockAsDictionary["previousBlockNonce"] as? String,
+                previousBlockNonceAsCompressedString.legitimateNonce,
+//               let previousBlockNonceAsData = previousBlockNonceAsCompressedString.decomressedData,
+
                 let makerDhtAddressAsHexString = blockAsDictionary["maker"] as? String,
                 let signatureForBlock = blockAsDictionary["signature"] as? String,
                 let id = blockAsDictionary["id"] as? String,
@@ -233,7 +229,7 @@ public enum Command: String, CommandProtocol {
 
                 let previousBlockHash = blockAsDictionary["previousBlockHash"] as? String,
                 let signatureForBlockAsData = signatureForBlock.base64DecodedData,
-                let transactionsAsJsonArrayString = transactions.dictionarysToJsonString {
+               let transactionsAsJsonArrayString = transactions.dictionarysToJsonString {
                 Log(transactions)
                 Log("transactionsAsJsonArrayString: \(transactionsAsJsonArrayString)")
                 Log("signatureForBlock: \(signatureForBlock)")
@@ -260,39 +256,46 @@ public enum Command: String, CommandProtocol {
                     Log("The Block to Trash. (Omit the Block.")
                     return nil
                 }
+                /*
+                 Received Block is Chainable to Legitimate / Branch Chains.
+                 */
                 let preBlockNonce = previousBlock.nonce
                 let nonce = Nonce(paddingZeroLength: nextDifficulty, preBlockNonce: preBlockNonce, nonceAsData: nonceAsData)
                 /*
-                 As Chainable for lastBlock in Cached.
+                 Verify Nonce Value in Received Block.
                  */
-                if nonce.verifyNonce(preNonceAsData: preBlockNonce.asBinary) {
-                    /*
-                     Nonce is OK.
-                     */
-                    Log("Valid Nonce.")
-                    guard var block = Block(maker: makerDhtAddressAsHexString, signature: signatureForBlockAsData, previousBlock: previousBlock, nonceAsData: nonceAsData, publicKey: publicKeyForBlockAsData, date: date, paddingZeroLengthForNonce: nextDifficulty, book: (node as! Node).book, id: id, chainable: chainable, previousBlockHash: previousBlock.hashedString, indexInBranchPoint: indexInBranchPoint, branchHash: branchHashString, indexInBranchChain: indexInBranchChain) else {
-                        Log("Can NOT Construct Block.")
-                        return nil
-                    }
-                    let allValidTransactions = block.add(multipleMakerTransactions: transactions, chainable: chainable, branchChainHash: branchHashString, indexInBranchChain: indexInBranchChain)
-                    /*
-                     As Protocol extension can not define settable property,
-                     Do Downcast to Node.
-                     
-                     #now make sure find taker's transaction in chained block in Birth View.
-                     */
-                    (node as! Node).book.signature = signatureForBlockAsData
-                    Log("-- \((node as! Node).book.blocks.count)")
-                    if allValidTransactions {
-                        Log("Block Have All Valid Transactions, cause Chain.")
-                        (node as! Node).book.chain(block: block, chainable: chainable, previousBlock: previousBlock, node: node as! Node, branchHashString: branchHashString, indexInBranchPoint: indexInBranchPoint, indexInBranchChain: indexInBranchChain)
-                    } else {
-                        Log("Block Have Invalid Transaction, cause NOT Chain.")
-                    }
-                    Log("++ \((node as! Node).book.blocks.count)")
-                } else {
+                guard nonce.verifyNonce(preNonceAsData: preBlockNonce.asBinary) else {
                     Log("Invalid Nonce.")
+                    return nil
                 }
+                Log("Valid Nonce.")
+                guard var block = Block(maker: makerDhtAddressAsHexString, signature: signatureForBlockAsData, previousBlock: previousBlock, nonceAsData: nonceAsData, publicKey: publicKeyForBlockAsData, date: date, paddingZeroLengthForNonce: nextDifficulty, book: (node as! Node).book, id: id, chainable: chainable, previousBlockHash: previousBlock.hashedString, indexInBranchPoint: indexInBranchPoint, branchHash: branchHashString, indexInBranchChain: indexInBranchChain) else {
+                    Log("Can NOT Construct Block.")
+                    return nil
+                }
+                /*
+                 Check Next Difficulty in Received Block.
+                 */
+                guard candidateNextDifficultyAsInt == block.nextDifficulty.toInt else {
+                    LogEssential("No Legitimate Next Difficulty Value cause Omit The Block.")
+                    return nil
+                }
+                let allValidTransactions = block.add(multipleMakerTransactions: transactions, chainable: chainable, branchChainHash: branchHashString, indexInBranchChain: indexInBranchChain)
+                /*
+                 As Protocol extension can not define settable property,
+                 Do Downcast to Node.
+                 
+                 #now make sure find taker's transaction in chained block in Birth View.
+                 */
+                (node as! Node).book.signature = signatureForBlockAsData
+                Log("-- \((node as! Node).book.blocks.count)")
+                if allValidTransactions {
+                    Log("Block Have All Valid Transactions, cause Chain.")
+                    (node as! Node).book.chain(block: block, chainable: chainable, previousBlock: previousBlock, node: node as! Node, branchHashString: branchHashString, indexInBranchPoint: indexInBranchPoint, indexInBranchChain: indexInBranchChain)
+                } else {
+                    Log("Block Have Invalid Transaction, cause NOT Chain.")
+                }
+                Log("++ \((node as! Node).book.blocks.count)")
             }
             return nil
         case .publishBlockReply :

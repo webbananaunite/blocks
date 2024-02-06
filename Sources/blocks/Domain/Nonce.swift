@@ -31,9 +31,12 @@ public class Nonce {
         return compressedHexString.decomressedData
     }
 
-    static let bits: UInt = 512
-    static let bytes: UInt = 64
-    static let hexStringLength = 128
+    let nonceMaxBitLength = 1048576
+//    static let bits: UInt = 512
+//    static let bytes: UInt = 64
+//    static let hexStringLength = 128
+    static let hashedBits: UInt = 512
+    static let hashedBytes: UInt = 64
 
     /*
      Difficulty as Proof of Work
@@ -41,7 +44,7 @@ public class Nonce {
     static let minimumSecondsInProofOfWorks: TimeInterval = 20 * 60  //As Seconds
     public static let defaultZeroLength: Difficulty = 16
     /*
-     Value Range is 0 - 512 (Nonce.bits)
+     Value Range is 0 - 512 (Nonce.hashedBits)
      Default value is 16
      */
     let leadingZeroLength: Difficulty
@@ -85,7 +88,7 @@ public class Nonce {
      */
     var difficultyAsUseExclusiveOR: Data = Data.DataNull
     private func makeDifficultyAsUseExclusiveOR() -> Data {
-        var difficultyAsExclusiveOR = Data(repeating: 0xff, count: Int(Nonce.bytes))
+        var difficultyAsExclusiveOR = Data(repeating: 0xff, count: Int(Nonce.hashedBytes))
 //        Dump(difficultyAsExclusiveOR)
         for number in 0..<self.leadingZeroLength.toInt {
             let index = number / UInt8.bitWidth
@@ -106,16 +109,15 @@ public class Nonce {
     }
     
     public func verifyNonce(preNonceAsData: Data) -> Bool {
-        DumpEssential(self.asBinary)
+        Dump(self.asBinary)
         let hashedComputedData = (preNonceAsData + self.asBinary).hash
-        DumpEssential(hashedComputedData)
-        DumpEssential(difficultyAsUseExclusiveOR)
+        Dump(hashedComputedData)
+        Dump(difficultyAsUseExclusiveOR)
         let foundNonce = hashedComputedData ^ difficultyAsUseExclusiveOR
         Log(foundNonce)
         return foundNonce
     }
     
-    let nonceMaxBitLength = 1048576
     #if UseGPU
     /*
      GPU Powered Calculate Nonce.
@@ -169,7 +171,7 @@ public class Nonce {
         }
         LogEssential("###Finished Make Nonce Approach.")
         LogEssential(addingExponent)
-        LogEssential(candidateNonceValue.compressedString)
+//        LogEssential(candidateNonceValue.compressedString)
         return candidateNonceValue
     }
     #endif
@@ -254,7 +256,7 @@ public class Nonce {
         var amountNonceBufferLength = 0
         for placedExponent: Int in -1..<self.gpuParallelProcedureLength {
             var fixExponentsValue = placedExponent >= 0 ? Int(placedExponent) : Int(-1)
-            if addingExponentValue < Nonce.bits {
+            if addingExponentValue < Nonce.hashedBits {
                 addingExponentValue += 1
             } else {
                 //次へ
@@ -263,7 +265,7 @@ public class Nonce {
                 fixexp = Int(fixExponentsValue + 1)
                 let addedNonceValue = candidateNonceValue.toData.add(exponent: UInt(fixexp)).toUint8Array
                 //上位桁（[]配列の大きい添字の方に）毎回512 bit padding追加する
-                candidateNonceValue = addedNonceValue.regularPaddingHigh(bytes: Nonce.bytes, compare: candidateNonceValue)
+                candidateNonceValue = addedNonceValue.regularPaddingHigh(bytes: Nonce.hashedBytes, compare: candidateNonceValue)
                 
                 /*
                  ↑
@@ -435,7 +437,7 @@ public class Nonce {
 //            Dump(hashedComputedData)
             foundNonce = found
         } else {
-            if addingExponent < Nonce.bits {
+            if addingExponent < Nonce.hashedBits {
                 addingExponent += 1
 //                Log("次の桁へ + 2^\(addingExponent)")
                 makeNonce(addingExponent: &addingExponent, candidateNonceValue: &candidateNonceValue, fixExponent: &fixExponent, foundNonce: &foundNonce, preNonceAsData: preNonceAsData)

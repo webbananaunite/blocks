@@ -29,7 +29,7 @@ extension Int: Difficulty {
     /*
      Leading Zero Length in Nonce Value.
      
-     Value Range is 16 - 512 (<= Nonce.bits)
+     Value Range is 16 - 512 (<= Nonce.hashedBits)
      */
     public static var minDifficulty: Difficulty = 16
     public static var maxDifficulty: Difficulty = 512

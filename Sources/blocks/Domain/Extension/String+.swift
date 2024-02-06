@@ -139,4 +139,27 @@ public extension String {
         Log("Decompressed Nonce: \(decompressedString)")
         return decompressedString.hexadecimalDecodedData
     }
+    
+    var legitimateNonce: Bool {
+        Log(self)
+        var innerSerialCounter = false
+        var preCharacter: Character?
+        for character in self.enumerated() {
+            if character.element == "{" {
+                innerSerialCounter = true
+            } else if character.element == "}" {
+                innerSerialCounter = false
+            } else {
+                if innerSerialCounter {
+                } else {
+                    if preCharacter == character.element {
+                        LogEssential("Detected Serial Character: \(character.element)")
+                        return false
+                    }
+                    preCharacter = character.element
+                }
+            }
+        }
+        return true
+    }
 }

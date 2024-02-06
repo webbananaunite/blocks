@@ -17,7 +17,7 @@ extension Data {
      */
     static func ^ (lhs: Data, rhs: Data) -> Bool {
         var foundNonce = false
-        for index in 0..<Int(Nonce.bytes) {  //..<64
+        for index in 0..<Int(Nonce.hashedBytes) {  //..<64
             if lhs[index] ^ rhs[index] <= rhs[index] {
 //                Log("Match")
                 foundNonce = true

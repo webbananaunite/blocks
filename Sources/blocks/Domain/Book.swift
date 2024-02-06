@@ -35,6 +35,8 @@ public struct Book {
      
      Restrict:
      None Branch in Candidate Chain.
+     
+     #pending Branch in Branch chain (tree structuring)
      */
     public var candidates = [String: [[Block]]]()
     public let candidateChainsMaximumForEachBranch = 10
@@ -57,7 +59,7 @@ public struct Book {
     }
     public var signature: Signature
     /*
-     Value Range is 0 - 512 (Nonce.bits)
+     Value Range is 0 - 512 (Nonce.hashedBits)
      
      Default value is 16
      */

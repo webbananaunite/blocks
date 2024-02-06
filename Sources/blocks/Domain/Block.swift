@@ -140,12 +140,15 @@ public struct Block {
      */
     var previousBlockHash: HashedString
     let previousBlockNonce: Nonce
+    var previousBlockNonceAsCompressedString: String?
+    
     let previousBlockDifficulty: Difficulty
     let nextDifficulty: Difficulty
     
     public var nonce: Nonce
+    var nonceAsCompressedString: String?
     /*
-     Value Range is 0 - 512 (Nonce.bits)
+     Value Range is 0 - 512 (Nonce.hashedBits)
      
      Default value is 16
      */
@@ -184,10 +187,12 @@ public struct Block {
         self.signature = signatureAsData
         self.previousBlockHash = previousBlockHash
         self.previousBlockNonce = Nonce(paddingZeroLength: previousBlockDifficulty, nonceAsData: previousNonceAsData)
+        self.previousBlockNonceAsCompressedString = self.previousBlockNonce.compressedHexaDecimalString
         self.previousBlockDifficulty = previousBlockDifficulty
         self.nextDifficulty = nextDifficulty
 
         self.nonce = Nonce(paddingZeroLength: paddingZeroLength, nonceAsData: nonceAsData)
+        self.nonceAsCompressedString = self.nonce.compressedHexaDecimalString
         self.difficultyAsNonceLeadingZeroLength = paddingZeroLength
         self.publicKey = publicKey
         self.book = book
@@ -213,6 +218,7 @@ public struct Block {
         self.maker = maker
         self.signature = signature
         self.previousBlockNonce = previousBlock.nonce
+        self.previousBlockNonceAsCompressedString = self.previousBlockNonce.compressedHexaDecimalString
         self.previousBlockHash = previousBlockHashedString
         
         self.previousBlockDifficulty = previousBlock.difficultyAsNonceLeadingZeroLength
@@ -241,6 +247,7 @@ public struct Block {
             self.difficultyAsNonceLeadingZeroLength = previousBlock.nextDifficulty
             self.nonce = Nonce(paddingZeroLength: previousBlock.nextDifficulty, preBlockNonce: previousBlockNonce)
         }
+        self.nonceAsCompressedString = self.nonce.compressedHexaDecimalString
         if let id = id {
             self.id = id
         } else {
@@ -260,8 +267,10 @@ public struct Block {
         self.maker = String(repeating: "0", count: 64)
         self.signature = Data(repeating: UInt8.zero, count: 64)
         self.previousBlockNonce = Nonce.genesisBlockNonce
+        self.previousBlockNonceAsCompressedString = self.previousBlockNonce.compressedHexaDecimalString
         self.previousBlockDifficulty = Nonce.genesisBlockDifficulty
         self.nonce = Nonce.genesisBlockNonce
+        self.nonceAsCompressedString = self.nonce.compressedHexaDecimalString
         self.difficultyAsNonceLeadingZeroLength = Nonce.defaultZeroLength
         self.nextDifficulty = Nonce.defaultZeroLength
         self.previousBlockHash = ""
@@ -276,8 +285,10 @@ public struct Block {
         self.maker = String(repeating: "0", count: 64)
         self.signature = Data(repeating: UInt8.zero, count: 64)
         self.previousBlockNonce = Nonce.genesisBlockNonce
+        self.previousBlockNonceAsCompressedString = self.previousBlockNonce.compressedHexaDecimalString
         self.previousBlockDifficulty = Nonce.genesisBlockDifficulty
         self.nonce = Nonce.genesisBlockNonce
+        self.nonceAsCompressedString = self.nonce.compressedHexaDecimalString
         self.difficultyAsNonceLeadingZeroLength = Nonce.defaultZeroLength
         self.nextDifficulty = Nonce.defaultZeroLength
         self.previousBlockHash = ""
@@ -662,10 +673,10 @@ public struct Block {
 "type":"\(self.type.rawValue)",
 "signature":"\(self.signature?.toString ?? "")",
 "previousBlockHash":"\(self.previousBlockHash)",
-"previousBlockNonce":"\(self.previousBlockNonce.compressedHexaDecimalString)",
+"previousBlockNonce":"\(self.previousBlockNonceAsCompressedString != nil ? self.previousBlockNonceAsCompressedString! : self.previousBlockNonce.compressedHexaDecimalString)",
 "previousBlockDifficulty":"\(self.previousBlockDifficulty)",
 "nextDifficulty":"\(self.nextDifficulty)",
-"nonce":"\(self.nonce.compressedHexaDecimalString)",
+"nonce":"\(self.nonceAsCompressedString != nil ? self.nonceAsCompressedString! : self.nonce.compressedHexaDecimalString)",
 "difficultyAsNonceLeadingZeroLength":"\(self.difficultyAsNonceLeadingZeroLength)",
 "publicKey":"\(self.publicKey.publicKeyToString)"
 """
