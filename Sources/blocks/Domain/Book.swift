@@ -59,13 +59,6 @@ public struct Book {
     }
     public var signature: Signature
     /*
-     Value Range is 0 - 512 (Nonce.hashedBits)
-     
-     Default value is 16
-     */
-//    public var currentDifficultyAsNonceLeadingZeroLength: Difficulty
-
-    /*
      Extract（抽出）
          一連のBlockの中からあるアプリケーションのトランザクションを抽出する
      */
@@ -388,7 +381,6 @@ public struct Book {
         for branchs in self.candidates.enumerated() {
             let branchHashString = branchs.element.key
             let branchChains = branchs.element.value   //branchChains: [[Block], ...MAX 10]
-//            for branchChain in branchChains {
             for branchChain in branchChains.enumerated() {
                 //branchChain: [Block, ...MAX 4]
                 if branchChain.element.endIndex < chainSwapRuledBlockCount {
@@ -674,10 +666,6 @@ public struct Book {
      utf8 →Data
      */
     private var content: Data {
-//        var jsonString = """
-//{"signature":"\(self.signature.toString)",
-//"currentDifficultyAsNonceLeadingZeroLength":"\(self.currentDifficultyAsNonceLeadingZeroLength)"
-//"""
         var jsonString = """
 {"signature":"\(self.signature.toString)"
 """

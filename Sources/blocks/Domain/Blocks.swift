@@ -4,7 +4,8 @@
 //
 //  Created by よういち on 2020/05/27.
 //  Copyright © 2020 WEB BANANA UNITE Tokyo-Yokohama LPC. All rights reserved.
-// 設計思想をここに書いている
+//
+//  It's Conceptual Document for The BlockChain named brocks.
 
 /*
  [モチベーション]

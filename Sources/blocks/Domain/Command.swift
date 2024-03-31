@@ -120,8 +120,9 @@ public enum Command: String, CommandProtocol {
         }
     }
     
-    public func receive(node: inout any NodeProtocol, operands: String, from fromNodeIp: String, token: String) -> String? {
-        LogEssential("\(self.rawValue) \(operands) \(token) From: \(fromNodeIp) in Premium Command.")
+//    public func receive(node: inout any NodeProtocol, operands: String, from fromNodeIp: String, token: String) -> String? {
+    public func receive(node: inout any NodeProtocol, operands: String, from fromNodeOverlayNetworkAddress: OverlayNetworkAddressAsHexString, token: String) -> String? {
+        LogEssential("\(self.rawValue) \(operands) \(token) From: \(fromNodeOverlayNetworkAddress) in Premium Command.")
         let operandArray = operandTakeApart(operands: operands)
         Log(operandArray)
         Log("\(operandArray.count) : \(self.allowedOperandsCountRange())")
@@ -155,7 +156,9 @@ public enum Command: String, CommandProtocol {
              Delegated by a node(other or own).
              Token use received token, the job token is not generated anew.
              */
-            node.enQueue(job: Job(command: self, operand: operands, from: fromNodeIp, to: node.getIp, type: .delegated, token: token))
+//            node.enQueue(job: Job(command: self, operand: operands, from: fromNodeIp, to: node.getIp, type: .delegated, token: token))
+            node.enQueue(job: Job(command: self, operand: operands, from: fromNodeOverlayNetworkAddress, to: node.dhtAddressAsHexString, type: .delegated, token: token))
+
             node.printQueue()
         }
         Log()
@@ -165,7 +168,7 @@ public enum Command: String, CommandProtocol {
              Block chain
              */
         case .publishBlock :    //MARK: publishBlock
-            LogEssential("Do \(self.rawValue)  From: \(fromNodeIp)")
+            LogEssential("Do \(self.rawValue)  From: \(fromNodeOverlayNetworkAddress)")
             Log("publishBlock")
             /*
              Operands
@@ -217,8 +220,6 @@ public enum Command: String, CommandProtocol {
                 let nonceAsData = nonceAsCompressedString.decomressedData,
                 let previousBlockNonceAsCompressedString = blockAsDictionary["previousBlockNonce"] as? String,
                 previousBlockNonceAsCompressedString.legitimateNonce,
-//               let previousBlockNonceAsData = previousBlockNonceAsCompressedString.decomressedData,
-
                 let makerDhtAddressAsHexString = blockAsDictionary["maker"] as? String,
                 let signatureForBlock = blockAsDictionary["signature"] as? String,
                 let id = blockAsDictionary["id"] as? String,
@@ -226,10 +227,9 @@ public enum Command: String, CommandProtocol {
                 let candidateNextDifficultyAsInt = Int(candidateNextDifficulty),
                 let candidateDifficultyAsNonceLeadingZeroLength = blockAsDictionary["difficultyAsNonceLeadingZeroLength"] as? String,
                 let candidateDifficultyAsNonceLeadingZeroLengthAsInt = Int(candidateDifficultyAsNonceLeadingZeroLength),
-
                 let previousBlockHash = blockAsDictionary["previousBlockHash"] as? String,
                 let signatureForBlockAsData = signatureForBlock.base64DecodedData,
-               let transactionsAsJsonArrayString = transactions.dictionarysToJsonString {
+                let transactionsAsJsonArrayString = transactions.dictionarysToJsonString {
                 Log(transactions)
                 Log("transactionsAsJsonArrayString: \(transactionsAsJsonArrayString)")
                 Log("signatureForBlock: \(signatureForBlock)")
@@ -302,7 +302,7 @@ public enum Command: String, CommandProtocol {
             LogEssential("Do \(self.rawValue)")
             return nil
         case .publishTransaction :   //MARK: publishTransaction
-            LogEssential("Do \(self.rawValue)  From: \(fromNodeIp)")
+            LogEssential("Do \(self.rawValue)  From: \(fromNodeOverlayNetworkAddress)")
             Log("publishTransaction")
             /*
              Transaction を受け取った

@@ -297,40 +297,6 @@ public struct Block {
         self.book = Book(signature: Data.DataNull)
         self.id = Block.nullBlockId
     }
-
-//    public static func block(from dictionary: [String: Any], book: Book, chainable: Book.ChainableResult) -> Block? {
-    /*
-    public static func block(from dictionary: [String: Any], book: Book, chainable: Book.ChainableResult, branchChainHash: HashedString?, indexInBranchChain: Int?) -> Block? {
-        Log()
-        if let date = dictionary["date"] as? String,
-            let id = dictionary["id"] as? String,
-            let maker = dictionary["maker"] as? String,
-            let signatureAsString = dictionary["signature"] as? String,
-            let signature = signatureAsString.base64DecodedData,
-            let previousBlockHash = dictionary["previousBlockHash"] as? String,
-            let previousBlockNonce = dictionary["previousBlockNonce"] as? String,
-            let previousBlockDifficulty = dictionary["previousBlockDifficulty"] as? String, let previousBlockDifficultyAsInt = Int(previousBlockDifficulty),
-            let nextDifficulty = dictionary["nextDifficulty"] as? String, let nextDifficultyAsInt = Int(nextDifficulty),
-            let nonceAsHex = dictionary["nonce"] as? String,
-            let difficultyAsNonceLeadingZeroLength = dictionary["difficultyAsNonceLeadingZeroLength"] as? String, let difficultyAsNonceLeadingZeroLengthAsInt = Int(difficultyAsNonceLeadingZeroLength),
-            let publicKeyString = dictionary["publicKey"] as? String,
-            let publicKey = publicKeyString.base64DecodedData,
-            let transactions = dictionary["transactions"] as? [[String : Any]]
-        {
-            Log()
-            if var block = Block(date: date, maker: maker, signature: signature, previousBlockHash: previousBlockHash, previousBlockNonce: previousBlockNonce, previousBlockDifficulty: previousBlockDifficultyAsInt, nextDifficulty: nextDifficultyAsInt, nonceAsHex: nonceAsHex, publicKey: publicKey, paddingZeroLength: difficultyAsNonceLeadingZeroLengthAsInt, book: book, id: id) {
-                Log()
-//                if block.add(multipleMakerTransactions: transactions, node: node, chainable: chainable) {
-                if block.add(multipleMakerTransactions: transactions, chainable: chainable, branchChainHash: branchChainHash, indexInBranchChain: indexInBranchChain) {
-                    Log()
-                    return block
-                }
-            }
-        }
-        Log()
-        return nil
-    }
-    */
     
     /*
      Paper:
@@ -363,7 +329,6 @@ public struct Block {
      Add         Transactionを追加する
          署名確認、残高確認を行う
      */
-//    public mutating func add(transactions transactionAsJsonArrayString: String, makerDhtAddressAsHexString: OverlayNetworkAddressAsHexString, publicKeyAsData: PublicKey, node: Node, chainable: Book.ChainableResult = .chainableBlock) -> Bool {
     /*
      Add Multi Owner's Transactions to Block.
      Use At Received PB (Publish Block) Command, and storeAsSecondaryCandidate()
@@ -604,25 +569,28 @@ public struct Block {
             //                let operands = [self.type.rawValue, compressedData.base64String, signatureString, signer.base64EncodedPublicKeyForSignatureString, self.maker]
             Log(operands)
             Log(node.predecessor?.getIp)
-            if let predecessorIp = node.predecessor?.getIp {
+            Log(node.predecessor?.dhtAddressAsHexString)
+            if let predecessorOverlayNetworkAddress = node.predecessor?.dhtAddressAsHexString {
                 serialQueue.async {
-                    Command.publishBlock.send(node: node, to: predecessorIp, operands: operands) { string in
+                    Command.publishBlock.send(node: node, to: predecessorOverlayNetworkAddress, operands: operands) { string in
                         Log(string)
                     }
                 }
             }
             Log(node.successor?.getIp)
-            if let successorIp = node.successor?.getIp {
+            Log(node.successor?.dhtAddressAsHexString)
+            if let successorOverlayNetworkAddress = node.successor?.dhtAddressAsHexString {
                 serialQueue.async {
-                    Command.publishBlock.send(node: node, to: successorIp, operands: operands) { string in
+                    Command.publishBlock.send(node: node, to: successorOverlayNetworkAddress, operands: operands) { string in
                         Log(string)
                     }
                 }
             }
             Log(node.babysitterNode?.getIp)
-            if let babysitterIp = node.babysitterNode?.getIp {
+            Log(node.babysitterNode?.dhtAddressAsHexString)
+            if let babysitterOverlayNetworkAddress = node.babysitterNode?.dhtAddressAsHexString {
                 serialQueue.async {
-                    Command.publishBlock.send(node: node, to: babysitterIp, operands: operands) { string in
+                    Command.publishBlock.send(node: node, to: babysitterOverlayNetworkAddress, operands: operands) { string in
                         Log(string)
                     }
                 }
@@ -825,80 +793,4 @@ public struct Block {
         Log("Verify Block? \(verifySucceeded)")
         return verifySucceeded
     }
-
-//    public func storeAsCandidate(blockid: String) {
-//        
-//    }
-    /*
-     Store Block to Device's Storage As Secondary Candidate.
-     
-     Format: Json
-     */
-//    private let archivedDirectory = NSSearchPathForDirectoriesInDomains(.applicationSupportDirectory, .userDomainMask, true).first! + "/block/"
-//    private let archiveFile = "secondaryCandidateBlock.json"
-//    private var archiveFilePath: String {
-//        self.archivedDirectory + self.archiveFile
-//    }
-//    public func storeAsSecondaryCandidate() {
-//        do {
-//            if !FileManager.default.fileExists(atPath: self.archivedDirectory) {
-//                do {
-//                    try FileManager.default.createDirectory(atPath: self.archivedDirectory, withIntermediateDirectories: true, attributes: nil)
-//                } catch {
-//                    Log()
-//                }
-//            }
-//            let storeUrl = URL(fileURLWithPath: self.archiveFilePath)
-//
-//            /*
-//             [
-//                {
-//                 "transactionId":"\(transactionId)",
-//                 "date":"\(dateString)",
-//                 "type":"\(self.type.rawValue)",
-//                 "makerDhtAddressAsHexString":"\(self.makerDhtAddressAsHexString)",
-//                 "contents":"\(self.content)",
-//                 "signature":"\(signature)",
-//                 "publicKey":"\(self.publicKey)"
-//                },
-//                ...
-//             ]
-//             */
-//            let jsonAsData = self.content
-//            LogEssential("\(jsonAsData.utf8String ?? "")")
-//            try jsonAsData.append(to: storeUrl, truncate: true)
-//        } catch {
-//            Log("Save Json Error \(error)")
-//        }
-//    }
-
-//    public func isCachedForSecondaryCandidate() -> Bool {
-//        Log()
-//        if !FileManager.default.fileExists(atPath: self.archiveFilePath) {
-//            LogEssential("No Cached")
-//            return false
-//        }
-//        LogEssential("Cached")
-//        return true
-//    }
-
-//    public func fetchSecondaryCandidate() -> [String: Any]? {
-//        Log()
-//        if self.isCachedForSecondaryCandidate() {
-//            Log()
-//            do {
-//                let url = URL(fileURLWithPath: self.archiveFilePath)
-//                let data = try Data(contentsOf: url)
-//                Log("\(data.utf8String ?? "")")
-//                if let jsonAsString = data.utf8String {
-//                    Log()
-//                    return jsonAsString.jsonToAnyDictionary
-//                }
-//            } catch {
-//                Log("Error Fetching Json Data: \(error)")
-//            }
-//        }
-//        Log()
-//        return nil
-//    }
 }

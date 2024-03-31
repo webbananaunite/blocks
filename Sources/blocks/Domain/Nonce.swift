@@ -32,9 +32,6 @@ public class Nonce {
     }
 
     let nonceMaxBitLength = 1048576
-//    static let bits: UInt = 512
-//    static let bytes: UInt = 64
-//    static let hexStringLength = 128
     static let hashedBits: UInt = 512
     static let hashedBytes: UInt = 64
 

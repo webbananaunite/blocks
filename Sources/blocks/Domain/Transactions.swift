@@ -28,8 +28,6 @@ public struct Transactions {
         }
         
         public var dictionaryToTransaction: (any Transaction)? {
-//            let publicKeyString = dictionary["publicKey"] as? String
-//            let makerDhtAddressAsHexString = dictionary["makerDhtAddressAsHexString"] as? String
             /*
              Optional([
              "claimObject": {
@@ -47,29 +45,10 @@ public struct Transactions {
              ])
              */
             Log(self.dictionary)
-//            guard let dictionary = self.dictionary else {return nil}
-//            let signatureBase64 = dictionary["signature"] as? String
-//            let signature = signatureBase64?.base64DecodedData
-//            let publicKeyString = dictionary["publicKey"] as? String
-//            let publicKeyAsData = publicKeyString?.base64DecodedData
-//            let makerDhtAddressAsHexString = dictionary["makerDhtAddressAsHexString"] as? String
-//            let type = dictionary["type"] as? String
-//            let typeAsTransactionType = TransactionType(rawValue: type ?? "")
-//            let claimAsString = dictionary["claim"] as? String
-//            let claim = typeAsTransactionType?.construct(rawValue: claimAsString ?? "")
-//            let claimContentAsJsonString = dictionary["claimObject"]
-//            let transactionId = dictionary["transactionId"] as? String
-//            let dateString = dictionary["date"] as? String
-
-            
             if let dictionary = self.dictionary,
                let signatureBase64 = dictionary["signature"] as? String,
                let signature = signatureBase64.base64DecodedData,
-               
-//               let publicKeyString = dictionary["publicKey"] as? String,
-//               let publicKeyAsData = publicKeyString.base64DecodedData,
-//               let makerDhtAddressAsHexString = dictionary["makerDhtAddressAsHexString"] as? String,
-                let signer = self.signer,
+               let signer = self.signer,
                let type = dictionary["type"] as? String,
                let typeAsTransactionType = TransactionType(rawValue: type),
                let claimAsString = dictionary["claim"] as? String, //Claim.rawValue
@@ -90,7 +69,6 @@ public struct Transactions {
                 Log("makerDhtAddressAsHexString: \(signer.makerDhtAddressAsHexString)")
                 Log("transactionId: \(transactionId)")
                 Log("date: \(dateString)")
-//                let signer = Signer(publicKeyAsData: publicKeyAsData, makerDhtAddressAsHexString: makerDhtAddressAsHexString)
                 var claimObject: ClaimObject?
                 if claimContentAsJsonString is String {
                     Log()
@@ -195,19 +173,18 @@ public struct Transactions {
                     Log(operands)
                 }
             }
-            
-            if let predecessorIp = node.predecessor?.getIp {
-                Command.publishTransaction.send(node: node, to: predecessorIp, operands: operands) { string in
+            if let predecessorOverlayNetworkAddress = node.predecessor?.dhtAddressAsHexString {
+                Command.publishTransaction.send(node: node, to: predecessorOverlayNetworkAddress, operands: operands) { string in
                     Log(string)
                 }
             }
-            if let successorIp = node.successor?.getIp {
-                Command.publishTransaction.send(node: node, to: successorIp, operands: operands) { string in
+            if let successorOverlayNetworkAddress = node.successor?.dhtAddressAsHexString {
+                Command.publishTransaction.send(node: node, to: successorOverlayNetworkAddress, operands: operands) { string in
                     Log(string)
                 }
             }
-            if let babysitterIp = node.babysitterNode?.getIp {
-                Command.publishTransaction.send(node: node, to: babysitterIp, operands: operands) { string in
+            if let babysitterOverlayNetworkAddress = node.babysitterNode?.dhtAddressAsHexString {
+                Command.publishTransaction.send(node: node, to: babysitterOverlayNetworkAddress, operands: operands) { string in
                     Log(string)
                 }
             }

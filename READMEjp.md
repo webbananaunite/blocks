@@ -21,22 +21,31 @@ Testy は住民基本台帳カードの代替として開発されています�
 
 blocksライブラリとoverlayNetworkライブラリの使用参考例として作成されたものです。
 
+## Signaling について
+Signalingはオーバーレイネットワークにおいて、NATトラバースを用い、オーバーレイネットワークアドレスをIP/ポートに変換することで、ノード間の通信をコーディネートします。
+Signalingはクラウド上で動作し、ノードの要求に応じ、通信調整を行います。
+Signalingはオーバーレイネットワークにおいて、NAT越えを実現します。
+
 ## download
 
-blocks - ブロックチェーン・ライブラリα版  
+blocks - ブロックチェーン・ライブラリβ版  
 [ダウンロード](https://github.com/webbananaunite/blocks)  
 https://github.com/webbananaunite/blocks  
  
-overlayNetwork - peer-to-peer分散ハッシュテーブル通信ライブラリα版  
+overlayNetwork - peer-to-peer分散ハッシュテーブル通信ライブラリβ版  
 [ダウンロード](https://github.com/webbananaunite/overlayNetwork)  
 https://github.com/webbananaunite/overlayNetwork  
  
-Testy - 住民基本台帳アプリα版  
+Testy - 住民基本台帳アプリβ版  
 [ダウンロード](https://github.com/webbananaunite/Testy)  
 https://github.com/webbananaunite/Testy  
+ 
+Signaling - オーバーレイネットワークアドレスをIP/ポートに変換β版  
+[ダウンロード](https://github.com/webbananaunite/Signaling)  
+https://github.com/webbananaunite/Signaling  
 
 ## ライブラリ利用方法
-### Swift Package ( 推奨 )
+### Swift Package (推奨)
 1) XcodeでTestyプロジェクトまたはあなたのアプリを開きます。  
 2) File - Add Packages
 3) 右上のSearch or Enter Package URLに次のblocks URLを入力します。
@@ -45,10 +54,10 @@ https://github.com/webbananaunite/blocks
 5) 右下のAdd Packageボタンをタップします。
 6) TestyプロジェクトまたはあなたのアプリのプロジェクトのFrameworks, Libraries and Embeded Contentにblocks libraryがあることを確認します。 
 7) TestyプロジェクトまたはあなたのアプリのプロジェクトのProject NavigatorのPackage Dependenciesにブロックチェーン・ライブラリ・スイート(blocks and overlayNetwork libraries)があることを確認します。
-8) overlayNetwork/Domain/Dht.swift 227行目にある{bootnodes}をあなたのローカルネットワークで最初に起動するデバイスのIPアドレスに変更します。  
-* アルファ版ではローカルネットワーク内でのみ動作可能です。
+8) 最初の一台は、ブートノードとして起動する必要があります。
+アプリをブートノードとして起動するためには、XcodeのEdit Scheme から RunAsBootNode という名称で Run Argument / Environment Variable のどちらかを設定します。
 9) Xcodeでビルド、デバイスやシミュレータへのインストールを行います。  
-10) アプリを起動し、"生体認証"ボタンをタップします。  
+10) アプリを起動し、"Join blocks Network"ボタンをタップします。  
 11) DHCテーブルの初期化が完了するまで8分ほど待ちます。  
 ### Carthage
 - $ cd your project directory
@@ -61,14 +70,14 @@ https://github.com/webbananaunite/blocks
 ```
 target 'target name in your App proj' do
   use_frameworks!
-	pod 'blocks-blockchain'
+    pod 'blocks-blockchain'
 end
 ```
 - $ pod install
 - Open your app.xcworkspace created by pod.
 
 ## 制限事項
-アルファ版では、ローカルネットワーク内でのみ動作可能です。
+ブートノードを公開アドレス上に作成できていないため、ベータ版を動作させるには、最初のNodeをブートノードとして起動する必要があります。
 
 ## ライセンス
 blocks & overlayNetwork & Testy は MIT Licenseで公開されています。  
@@ -82,7 +91,7 @@ blocks & overlayNetwork & Testy は MIT Licenseで公開されています。
 ## その他説明
 ### 用語説明:
 - Baby Sitter
-  
+
 あるノードが、OSI参照モデルのセッションレイヤーとしてのオーバーレイネットワークに参加する際には、最初に Baby Sitter NodeをbindサーバーのTXTレコードから見つけ、FSコマンドを送信する必要があります。
 Codeプロトコルによる実装されるDHT（分散ハッシュテーブル）のエントリーごとにです。
 
@@ -105,6 +114,7 @@ Bookerとして振る舞うノードは、まだBookされていないトラン�
 - SwiftUI (Protocol Oriented) 
 - C++ (Metal) 
 - objc (DNS resolv)
+- Python (Signaling)
 
 ### サードパーティライブラリの使用
 使用していません。しかし、他の著作物を含んでいます。
@@ -125,7 +135,7 @@ Little Endian
 nonce の計算はcpuもしくはgpuを選択可能です。
 
 ## ステータス
-Alpha  
+Beta  
 
 現在、すべての機能は実装されていません。
 - 例. overlayNetwork の DHT ネットワークから離脱したり、また戻ったりする場合への対応。  

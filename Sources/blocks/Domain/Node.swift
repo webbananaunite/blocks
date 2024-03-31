@@ -19,7 +19,6 @@ public extension overlayNetwork.NodeProtocol {
 }
 
 open class Node: overlayNetwork.Node {
-//    public var book: Book = Book(signature: Data.DataNull, currentDifficultyAsNonceLeadingZeroLength: Nonce.defaultZeroLength) {
     public var book: Book = Book(signature: Data.DataNull) {
         didSet {
             Log("fired didSet book")
@@ -83,12 +82,10 @@ open class Node: overlayNetwork.Node {
             let privateKeyForEncryptionAsBase64String = signInformation["privateKeyForEncryption"],
             let privateKeyForEncryptionAsData = privateKeyForEncryptionAsBase64String.base64DecodedData,
             let dhtAddressAsHexString = signInformation["dhtAddressAsHexString"]
-//            let currentDifficultyAsNonceLeadingZeroLength = bookInformation["currentDifficultyAsNonceLeadingZeroLength"], let currentDifficultyAsNonceLeadingZeroLengthAsInt = Int(currentDifficultyAsNonceLeadingZeroLength) 
         {
             Log("Node Information is Restorable.")
             let signer = Signer(publicKeyForSignatureAsData: publicKeyForSignatureAsData, privateKeyForSignatureAsData: privateKeyForSignatureAsData, dhtAddressAsHexString: dhtAddressAsHexString, publicKeyForEncryptionAsData: publicKeyForEncryptionAsData, privateKeyForEncryptionAsData: privateKeyForEncryptionAsData)
             self.setSigner(signer: signer)
-//            self.book.currentDifficultyAsNonceLeadingZeroLength = currentDifficultyAsNonceLeadingZeroLengthAsInt
             return true
         } else {
             Log("Node Properties is NOT Cached.")

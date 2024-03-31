@@ -147,16 +147,6 @@ public enum ClaimOnPerson: String, Claim {
         public func toJsonString(signer: Signer?, peerSigner: Signer?) -> String? {
             if let signer = signer, let peerSigner = peerSigner {
                 Log()
-//                if let personalDataAsJsonString = self.personalData.encrypt(signer: signer, peerSigner: peerSigner)?.base64String {
-//                    Log()
-//                    return [
-//                        "Destination": destination.toString,
-//                        "PublicKeyForEncryption": publicKeyForEncryption?.publicKeyForEncryptionToString ?? "",
-//                        "CombinedSealedBox": combinedSealedBox, //image binary or zip file
-//                        "Description": description,
-//                        "PersonalData": personalDataAsJsonString,
-//                    ].dictionaryToJsonString
-//                }
                 var personalData = ""
                 if let personalDataAsJsonString = self.personalData.encrypt(signer: signer, peerSigner: peerSigner)?.base64String {
                     Log()
@@ -476,10 +466,9 @@ public extension Person {
      
      if personTransaction.duplicatedPerson(claimAsString: self.claim.rawValue, hashedName: claimObject.personalData.name, hashedBirth: claimObject.personalData.birth, hashedPhone: claimObject.personalData.phone, chainable: chainable)
      
-     #now personトランザクション数が増えると、重複チェックに時間がかかる　→方法を講じる必要ある
+     #now #pending personトランザクション数が増えると、重複チェックに時間がかかる　→方法を講じる必要ある
 
      */
-//    func duplicatedPerson(chainable: Book.ChainableResult) -> Bool {
     func duplicatedPerson(chainable: Book.ChainableResult, branchChainHash: HashedString?, indexInBranchChain: Int?) -> Bool {
         guard let claimObject = self.claimObject as? ClaimOnPerson.Object, let claimAsString = self.claim.rawValue else {
             LogEssential("incorrect transaction cause matchedSamePerson: false")

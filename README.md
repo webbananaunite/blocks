@@ -19,21 +19,33 @@ Testy is alternative to Basic Resident Register Card.
 
 It is made as Reference iOS App based on blocks and overlayNetwork libraries.
 
+## about Signaling
+Signaling coordinate Node to Node Communication (TCP/IP) in Overlay Network, with NAT Traverse,
+as Translate OverlayNetworkAddress to IP/Port.
+
+Signaling emit signal at claim by Nodes in Cloud (Python).
+
+Signaling make NAT Traverse in Overlay Network.
+
 ## download
 blocks - BlockChain Library α version  
 [download](https://github.com/webbananaunite/blocks)  
 https://github.com/webbananaunite/blocks  
  
-overlayNetwork - Peer-to-Peer Overlay Network Communicate Library α version  
+overlayNetwork - Peer-to-Peer Overlay Network Communicate Library β version  
 [download](https://github.com/webbananaunite/overlayNetwork)  
 https://github.com/webbananaunite/overlayNetwork  
  
-Testy - Basic Resident Register Application α version  
+Testy - Basic Resident Register Application β version  
 [download](https://github.com/webbananaunite/Testy)  
 https://github.com/webbananaunite/Testy  
+ 
+Signaling - Coordinater in Translate OverlayNetworkAddress to IP/Port β version  
+[download](https://github.com/webbananaunite/Signaling)  
+https://github.com/webbananaunite/Signaling  
 
 ## How to Use
-### Swift Package (Recommended.)
+### Swift Package (Recommended)
 1) Open Testy Project or Your App Project in Xcode.  
 2) File - Add Packages
 3) Input following blocks URL to Search or Enter Package URL Box on UpRight.
@@ -42,10 +54,10 @@ https://github.com/webbananaunite/blocks
 5) Tap Add Package Button on DownRight.
 6) Make Sure there Added blocks library in Project - Frameworks, Libraries and Embeded Content.
 7) Make Sure there Added The BlockChain Library Suite(blocks and overlayNetwork libraries) at Package Dependencies in Project Navigator in Xcode.
-8) Modify {bootnodes} to First Booting Device's IP depending your local network in overlayNetwork/Domain/Dht.swift l.227  
-* Alpha Version cause Runnable in Your Local Network Only.  
+8) At First, a Simulator / Device must run as Boot Node.
+   For App run as Boot Node, Set {RunAsBootNode} as Run Argument / Environment Variable on Edit Scheme on Xcode.
 9) Xcode Build and Install Devices or Simulators.  
-10) Open App and Tap "生体認証" Button.  
+10) Open App and Tap "Join blocks Network" Button.  
 11) Wait Around 8 min. up to Done Initialize DHC table.  
 ### Carthage
 - $ cd your project directory
@@ -58,14 +70,14 @@ https://github.com/webbananaunite/blocks
 ```
 target 'target name in your App proj' do
   use_frameworks!
-	pod 'blocks-blockchain'
+    pod 'blocks-blockchain'
 end
 ```
 - $ pod install
 - Open your app.xcworkspace created by pod.
 
 ## limitations
-Alpha Version cause Runnable in Your Local Network Only.  
+NOT running Boot Node in Public Network yet in Beta Version. Cause First device must run as Boot Node. 
 
 ## license
 blocks library & overlayNetwork library & Testy is published under MIT License,  
@@ -100,6 +112,7 @@ The Booker Do Beheivier as Temporary Administrator of Book (blocks Block Chain) 
 - SwiftUI (Protocol Oriented) 
 - C++ (Metal) 
 - objc (DNS resolv)
+- Python (Signaling)
 
 ### using 3rd party libraries
 Nothing, but program include other one copyrights.  
@@ -120,7 +133,7 @@ Little Endian
 nonce calculator is choosable cpu or gpu.
 
 ## status
-Alpha  
+Beta  
 
 Have NOT all done functions implementation.  
 - ex. Leaving and returning from DHT Network in overlayNetwork.  

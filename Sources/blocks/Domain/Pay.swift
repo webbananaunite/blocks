@@ -247,7 +247,6 @@ public struct Pay: Transaction {
         self.claimObject = ClaimOnPay.Object(destination: "")
         self.signature = nil
         self.publicKey = nil
-//        self.book = Book(signature: Data.DataNull, currentDifficultyAsNonceLeadingZeroLength: 0)
         self.book = Book(signature: Data.DataNull)
         self.signer = Signer()
     }

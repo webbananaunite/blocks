@@ -136,12 +136,7 @@ public extension Transaction {
 //            Log(self.date?.utcTimeString)
 //            Log(self.claimObject.toJsonString(signer: self.signer, peerSigner: self.peerSigner))
 //            Log(self.claim.rawValue)
-            
-//            if let signature = self.signature?.toString, let dateString = self.date?.utcTimeString, let claimObject = self.claimObject.toJsonString(signer: self.signer, peerSigner: self.peerSigner), let claim = self.claim.rawValue {
             if let dateString = self.date?.utcTimeString, let claimObject = self.claimObject.toJsonString(signer: self.signer, peerSigner: self.peerSigner), let claim = self.claim.rawValue {
-//                var json = """
-//{"date":"\(dateString)","type":"\(self.type.rawValue)","makerDhtAddressAsHexString":"\(self.makerDhtAddressAsHexString)","publicKey":"\(self.publicKey?.publicKeyToString ?? "")","claim":"\(claim)","claimObject":\(claimObject),"signature":"\(signature)"}
-//"""
                 var json = """
 {"date":"\(dateString)","type":"\(self.type.rawValue)","makerDhtAddressAsHexString":"\(self.makerDhtAddressAsHexString)","publicKey":"\(self.publicKey?.publicKeyToString ?? "")","claim":"\(claim)","claimObject":\(claimObject)"}
 """
@@ -232,18 +227,18 @@ public extension Transaction {
         //By Transaction Column
         operands += [self.useAsOperands]
         Log(operands)
-        if let predecessorIp = node.predecessor?.getIp {
-            Command.publishTransaction.send(node: node, to: predecessorIp, operands: operands) { string in
+        if let predecessorOverlayNetworkAddress = node.predecessor?.dhtAddressAsHexString {
+            Command.publishTransaction.send(node: node, to: predecessorOverlayNetworkAddress, operands: operands) { string in
                 Log(string)
             }
         }
-        if let successorIp = node.successor?.getIp {
-            Command.publishTransaction.send(node: node, to: successorIp, operands: operands) { string in
+        if let successorOverlayNetworkAddress = node.successor?.dhtAddressAsHexString {
+            Command.publishTransaction.send(node: node, to: successorOverlayNetworkAddress, operands: operands) { string in
                 Log(string)
             }
         }
-        if let babysitterIp = node.babysitterNode?.getIp {
-            Command.publishTransaction.send(node: node, to: babysitterIp, operands: operands) { string in
+        if let babysitterOverlayNetworkAddress = node.babysitterNode?.dhtAddressAsHexString {
+            Command.publishTransaction.send(node: node, to: babysitterOverlayNetworkAddress, operands: operands) { string in
                 Log(string)
             }
         }
@@ -263,7 +258,6 @@ public extension Transaction {
      Paper:
      5) ノードは、ブロック内のすべてのトランザクションが有効で、まだ使用されていない場合にのみブロックを受け入れます。 #now
      */
-//    func validate(chainable: Book.ChainableResult = .chainableBlock) -> Bool {
     func validate(chainable: Book.ChainableResult = .chainableBlock, branchChainHash: HashedString?, indexInBranchChain: Int?) -> Bool {
         Log()
         guard let contentData = self.claimObject.toJsonString(signer: self.signer, peerSigner: self.peerSigner)?.utf8DecodedData, let contentHashedData = contentData.hashedData?.toData, let signature = self.signature else {
@@ -290,7 +284,6 @@ public extension Transaction {
             if self.type == .person {
                 LogEssential(self.claim.rawValue)
                 if let claimObject = self.claimObject as? ClaimOnPerson.Object, let personTransaction = self as? ImplementedPerson {
-//                    if personTransaction.duplicatedPerson(claimAsString: self.claim.rawValue, hashedName: claimObject.personalData.name, hashedBirth: claimObject.personalData.birth, hashedPhone: claimObject.personalData.phone, chainable: chainable) {
                     if personTransaction.duplicatedPerson(chainable: chainable, branchChainHash: branchChainHash, indexInBranchChain: indexInBranchChain) {
                         //Duplicated Person
                         LogEssential("Duplicate Birth as same Person.")

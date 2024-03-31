@@ -9,13 +9,7 @@
 import Foundation
 import overlayNetwork
 
-public class StreamingBlocks: overlayNetwork.Streaming {
-}
-
 public class Dht: overlayNetwork.Dht {
-}
-
-public class AcceptStreamingBlocks: overlayNetwork.AcceptStreaming {
 }
 
 public struct IpaddressV4: IpaddressV4Protocol {
@@ -29,16 +23,4 @@ public struct IpaddressV4: IpaddressV4Protocol {
             if regions.count > Self.IpAddressRegionCount {regions = oldValue}
         }
     }
-}
-
-/*
- Only Use Network Framework Communication
- */
-public protocol PeerConnectionDelegateNetwork: overlayNetwork.PeerConnectionDelegate {
-}
-@available(iOS 16.0, *)
-public class PeerConnectionNetwork: overlayNetwork.PeerConnection {
-}
-@available(iOS 16.0, *)
-public class PeerListenerNetwork: overlayNetwork.PeerListener {
 }
