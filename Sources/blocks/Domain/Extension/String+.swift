@@ -68,7 +68,7 @@ public extension String {
      "f{10}0{20}10"
      */
     var compressedHexDecimalString: String {
-        LogEssential("Started Let Nonce Value Compress.")
+        Log("Started Let Nonce Value Compress.")
         var preCharacter: Character?
         var serialCount = 1
         let compressedString = self.enumerated().reduce("") {
@@ -94,7 +94,7 @@ public extension String {
             }
             return $0 + addCharacter
         }
-        LogEssential("Finished Compressed Nonce: \(compressedString)")
+        Log("Finished Compressed Nonce: \(compressedString)")
         return compressedString
     }
 
@@ -153,7 +153,7 @@ public extension String {
                 if innerSerialCounter {
                 } else {
                     if preCharacter == character.element {
-                        LogEssential("Detected Serial Character: \(character.element)")
+                        Log("Detected Serial Character: \(character.element)")
                         return false
                     }
                     preCharacter = character.element

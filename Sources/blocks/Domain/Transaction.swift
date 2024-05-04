@@ -261,7 +261,7 @@ public extension Transaction {
     func validate(chainable: Book.ChainableResult = .chainableBlock, branchChainHash: HashedString?, indexInBranchChain: Int?) -> Bool {
         Log()
         guard let contentData = self.claimObject.toJsonString(signer: self.signer, peerSigner: self.peerSigner)?.utf8DecodedData, let contentHashedData = contentData.hashedData?.toData, let signature = self.signature else {
-            LogEssential("transaction signature false")
+            Log("transaction signature false")
             return false
         }
         Log("SIGN#++")
@@ -271,7 +271,7 @@ public extension Transaction {
         Log("signature: \(signature.toString)")
         do {
             guard try self.verify(data: contentHashedData, signature: signature, signer: self.signer) else {
-                LogEssential("transaction verify false")
+                Log("transaction verify false")
                 return false
             }
             
@@ -282,11 +282,11 @@ public extension Transaction {
              Check Transactions Limited by Claim.
              */
             if self.type == .person {
-                LogEssential(self.claim.rawValue)
+                Log(self.claim.rawValue)
                 if let claimObject = self.claimObject as? ClaimOnPerson.Object, let personTransaction = self as? ImplementedPerson {
                     if personTransaction.duplicatedPerson(chainable: chainable, branchChainHash: branchChainHash, indexInBranchChain: indexInBranchChain) {
                         //Duplicated Person
-                        LogEssential("Duplicate Birth as same Person.")
+                        Log("Duplicate Birth as same Person.")
                         return false
                     }
                 }
@@ -296,7 +296,7 @@ public extension Transaction {
              Check balance for debit/credit in Transaction.
              */
             if !self.debitOnLeft.equal(self.creditOnRight) {
-                LogEssential("No Match Balance for debit/credit in Transaction")
+                Log("No Match Balance for debit/credit in Transaction")
                 return false
             }
 
@@ -304,11 +304,11 @@ public extension Transaction {
              Check Number of Digits Under Regulated Decimal Point.
              */
             guard self.debitOnLeft.validBKDigitsOfFraction(Decimal.validBKDigitsOfFraction) else {
-                LogEssential("Invalid Digits in DebitOnLeft. \(self.debitOnLeft)")
+                Log("Invalid Digits in DebitOnLeft. \(self.debitOnLeft)")
                 return false
             }
             guard self.creditOnRight.validBKDigitsOfFraction(Decimal.validBKDigitsOfFraction) else {
-                LogEssential("Invalid Digits in CreditOnRight. \(self.creditOnRight)")
+                Log("Invalid Digits in CreditOnRight. \(self.creditOnRight)")
                 return false
             }
             Log("\(self.debitOnLeft) \(self.creditOnRight)")
@@ -318,11 +318,11 @@ public extension Transaction {
              */
             //Decimal.max以下かチェックする
             guard self.debitOnLeft.asDecimal <= Decimal.maxBKValue.asDecimal else {
-                LogEssential("Over Maximum Digit DebitOnLeft.")
+                Log("Over Maximum Digit DebitOnLeft.")
                 return false
             }
             guard self.creditOnRight.asDecimal <= Decimal.maxBKValue.asDecimal else {
-                LogEssential("Over Maximum Digit CreditOnRight.")
+                Log("Over Maximum Digit CreditOnRight.")
                 return false
             }
 
@@ -335,14 +335,14 @@ public extension Transaction {
             Log("\(self.debitOnLeft) + \(self.feeForBooker) <= \(balancedAmount)")
             guard self.debitOnLeft.asDecimal + self.feeForBooker.asDecimal <= balancedAmount.asDecimal else {
                 //Short of balances.
-                LogEssential("Short of balances in Account.")
+                Log("Short of balances in Account.")
                 return false
             }
         } catch {
-            LogEssential(error)
+            Log(error)
             return false
         }
-        LogEssential("transaction validate true")
+        Log("transaction validate true")
         return true
     }
     

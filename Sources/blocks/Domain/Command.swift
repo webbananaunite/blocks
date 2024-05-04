@@ -120,9 +120,8 @@ public enum Command: String, CommandProtocol {
         }
     }
     
-//    public func receive(node: inout any NodeProtocol, operands: String, from fromNodeIp: String, token: String) -> String? {
     public func receive(node: inout any NodeProtocol, operands: String, from fromNodeOverlayNetworkAddress: OverlayNetworkAddressAsHexString, token: String) -> String? {
-        LogEssential("\(self.rawValue) \(operands) \(token) From: \(fromNodeOverlayNetworkAddress) in Premium Command.")
+        Log("\(self.rawValue) \(operands) \(token) From: \(fromNodeOverlayNetworkAddress) in Premium Command.")
         let operandArray = operandTakeApart(operands: operands)
         Log(operandArray)
         Log("\(operandArray.count) : \(self.allowedOperandsCountRange())")
@@ -156,7 +155,6 @@ public enum Command: String, CommandProtocol {
              Delegated by a node(other or own).
              Token use received token, the job token is not generated anew.
              */
-//            node.enQueue(job: Job(command: self, operand: operands, from: fromNodeIp, to: node.getIp, type: .delegated, token: token))
             node.enQueue(job: Job(command: self, operand: operands, from: fromNodeOverlayNetworkAddress, to: node.dhtAddressAsHexString, type: .delegated, token: token))
 
             node.printQueue()
@@ -168,7 +166,7 @@ public enum Command: String, CommandProtocol {
              Block chain
              */
         case .publishBlock :    //MARK: publishBlock
-            LogEssential("Do \(self.rawValue)  From: \(fromNodeOverlayNetworkAddress)")
+            Log("Do \(self.rawValue)  From: \(fromNodeOverlayNetworkAddress)")
             Log("publishBlock")
             /*
              Operands
@@ -233,12 +231,12 @@ public enum Command: String, CommandProtocol {
                 Log(transactions)
                 Log("transactionsAsJsonArrayString: \(transactionsAsJsonArrayString)")
                 Log("signatureForBlock: \(signatureForBlock)")
-                LogEssential("Received Block's difficulties: \(candidateDifficultyAsNonceLeadingZeroLengthAsInt) - \(candidateNextDifficultyAsInt)")
+                Log("Received Block's difficulties: \(candidateDifficultyAsNonceLeadingZeroLengthAsInt) - \(candidateNextDifficultyAsInt)")
                 /*
                  Detect Chainable to Legitimate Chain or Any Branch Chaines.
                  */
                 let (chainable, previousBlock, nextDifficulty, branchHashString, indexInBranchPoint, indexInBranchChain) = (node as! Node).book.chainable(previousBlockHash: previousBlockHash, signatureForBlock: signatureForBlockAsData, node: (node as! Node))
-                LogEssential("\(chainable) block id: \(id) previousBlockHash: \(previousBlockHash) nextDifficulty: \(nextDifficulty) branchHashString: \(branchHashString) indexInBranchChain: \(indexInBranchChain) indexInBranchPoint: \(indexInBranchPoint)")
+                Log("\(chainable) block id: \(id) previousBlockHash: \(previousBlockHash) nextDifficulty: \(nextDifficulty) branchHashString: \(branchHashString) indexInBranchChain: \(indexInBranchChain) indexInBranchPoint: \(indexInBranchPoint)")
                 switch chainable {
                 case .branchableBlock:
                     /*
@@ -277,7 +275,7 @@ public enum Command: String, CommandProtocol {
                  Check Next Difficulty in Received Block.
                  */
                 guard candidateNextDifficultyAsInt == block.nextDifficulty.toInt else {
-                    LogEssential("No Legitimate Next Difficulty Value cause Omit The Block.")
+                    Log("No Legitimate Next Difficulty Value cause Omit The Block.")
                     return nil
                 }
                 let allValidTransactions = block.add(multipleMakerTransactions: transactions, chainable: chainable, branchChainHash: branchHashString, indexInBranchChain: indexInBranchChain)
@@ -299,10 +297,10 @@ public enum Command: String, CommandProtocol {
             }
             return nil
         case .publishBlockReply :
-            LogEssential("Do \(self.rawValue)")
+            Log("Do \(self.rawValue)")
             return nil
         case .publishTransaction :   //MARK: publishTransaction
-            LogEssential("Do \(self.rawValue)  From: \(fromNodeOverlayNetworkAddress)")
+            Log("Do \(self.rawValue)  From: \(fromNodeOverlayNetworkAddress)")
             Log("publishTransaction")
             /*
              Transaction を受け取った
@@ -409,7 +407,7 @@ public enum Command: String, CommandProtocol {
                 /*
                  add new block to own node's book.
                  */
-                LogEssential("Make Chain Own Generated Block to Own Node's Book.")
+                Log("Make Chain Own Generated Block to Own Node's Book.")
                 block.chain(previousBlock: lastBlock, node: node, signer: signer)
 
                 /*
@@ -423,7 +421,7 @@ public enum Command: String, CommandProtocol {
             }
             return nil
         case .publishTransactionReply :
-            LogEssential("Do \(self.rawValue)")
+            Log("Do \(self.rawValue)")
             /*
              Operands
              

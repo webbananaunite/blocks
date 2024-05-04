@@ -471,19 +471,19 @@ public extension Person {
      */
     func duplicatedPerson(chainable: Book.ChainableResult, branchChainHash: HashedString?, indexInBranchChain: Int?) -> Bool {
         guard let claimObject = self.claimObject as? ClaimOnPerson.Object, let claimAsString = self.claim.rawValue else {
-            LogEssential("incorrect transaction cause matchedSamePerson: false")
+            Log("incorrect transaction cause matchedSamePerson: false")
             return false
         }
         let hashedName = claimObject.personalData.name
         let hashedBirth = claimObject.personalData.birth
         let hashedPhone = claimObject.personalData.phone
         if hashedName == "" || hashedBirth == "" || hashedPhone == "" {
-            LogEssential("empty person information in transaction cause matchedSamePerson: false")
+            Log("empty person information in transaction cause matchedSamePerson: false")
             return false
         }
         var matchedSamePerson = false
         for block in self.book.blocks.enumerated() {
-            LogEssential(block.offset)
+            Log(block.offset)
             /*
              For Secondary Candidate Block, Duplicate Check will do exclude Last Block.
              */
@@ -495,25 +495,25 @@ public extension Person {
             }
             
             for transaction in block.element.transactions {
-                LogEssential(transaction.jsonString)
+                Log(transaction.jsonString)
                 if transaction.type == .person {
                     //It's Person transaction.
                     if let claimString = transaction.claim.rawValue {
                         if let claimObject = transaction.claimObject as? ClaimOnPerson.Object {
-                            LogEssential("\(claimString) == \(claimAsString)")
+                            Log("\(claimString) == \(claimAsString)")
                             if claimString == claimAsString {   // Only As Same Claim
                                 if claimObject.personalData.name == "" || claimObject.personalData.birth == "" || claimObject.personalData.phone == "" {
-                                    LogEssential("\(claimObject.personalData.name) == \(hashedName)")
+                                    Log("\(claimObject.personalData.name) == \(hashedName)")
                                     if claimObject.personalData.name == hashedName {
-                                        LogEssential("\(claimObject.personalData.birth) == \(hashedBirth)")
-                                        if claimObject.personalData.birth == hashedBirth {LogEssential()
+                                        Log("\(claimObject.personalData.birth) == \(hashedBirth)")
+                                        if claimObject.personalData.birth == hashedBirth {Log()
                                             //There is same Person already.
                                             matchedSamePerson = true
                                             break
                                         }
                                     }
-                                    LogEssential("\(claimObject.personalData.phone) == \(hashedPhone)")
-                                    if claimObject.personalData.phone == hashedPhone {LogEssential()
+                                    Log("\(claimObject.personalData.phone) == \(hashedPhone)")
+                                    if claimObject.personalData.phone == hashedPhone {Log()
                                         //There is same Person already.
                                         matchedSamePerson = true
                                         break
@@ -528,7 +528,7 @@ public extension Person {
                 break
             }
         }
-        LogEssential("matchedSamePerson: \(matchedSamePerson)")
+        Log("matchedSamePerson: \(matchedSamePerson)")
         return matchedSamePerson
     }
 }

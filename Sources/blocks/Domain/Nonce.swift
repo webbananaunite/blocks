@@ -143,7 +143,7 @@ public class Nonce {
      CPU Powered Calculate Nonce
      */
     private func makeNonce(preBlockNonce: Nonce) -> Data {
-        LogEssential("###Started Make Nonce Approach.")
+        Log("###Started Make Nonce Approach.")
         var candidateNonceValue: Data = Data.DataNull
         var addingExponent: UInt = 0
         var fixExponents: UInt? = nil
@@ -166,9 +166,9 @@ public class Nonce {
                 addingExponent = fixexp + 1
             }
         }
-        LogEssential("###Finished Make Nonce Approach.")
-        LogEssential(addingExponent)
-//        LogEssential(candidateNonceValue.compressedString)
+        Log("###Finished Make Nonce Approach.")
+        Log(addingExponent)
+//        Log(candidateNonceValue.compressedString)
         return candidateNonceValue
     }
     #endif
@@ -415,9 +415,9 @@ public class Nonce {
      Should be #rewrite Metal code as async and GPU calculation for calculate faster.
      */
     private func makeNonce(addingExponent: inout UInt, candidateNonceValue: inout Data, fixExponent: inout UInt?, foundNonce: inout Bool, preNonceAsData: Data) {
-//        LogEssential("\(String(describing: fixExponent)) 候補目")
+//        Log("\(String(describing: fixExponent)) 候補目")
 //        Dump(candidateNonceValue)
-//        LogEssential("+ 2^\(addingExponent)")
+//        Log("+ 2^\(addingExponent)")
         let addedValue = candidateNonceValue.add(exponent: addingExponent)  //Nonce value is as Little Endian
 //        Dump(addedValue)
         let hashedComputedData = (preNonceAsData + addedValue).hash

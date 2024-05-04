@@ -195,44 +195,44 @@ public struct Book {
                     //add genesis block
                     self.blocks += [Block.genesis]
                 }
-                LogEssential(chainable)
+                Log(chainable)
                 switch chainable {
                 case .branchableBlock:
-                    LogEssential("The Block Chained as Candidate Branch Chain.")
+                    Log("The Block Chained as Candidate Branch Chain.")
                     /*
                      if branch length (other word, contained Blocks Count) over {chainSwapRuledBlockCount}, Swap the Branch to Legitimate Chain at Branch Point.
                      */
                     guard let branchHashString = branchHashString, let indexInBranchPoint = indexInBranchPoint, let indexInBranchChain = indexInBranchChain else {
                         return
                     }
-                    LogEssential(branchHashString.toString)
-                    LogEssential(indexInBranchPoint)
-                    LogEssential(indexInBranchChain)
-                    LogEssential(self.candidates.count)
-                    LogEssential(self.candidates[branchHashString.toString]?.count)
+                    Log(branchHashString.toString)
+                    Log(indexInBranchPoint)
+                    Log(indexInBranchChain)
+                    Log(self.candidates.count)
+                    Log(self.candidates[branchHashString.toString]?.count)
                     let branchHashedString = branchHashString.toString
-                    LogEssential("\(self.candidates[branchHashedString]?.endIndex) == \(indexInBranchPoint)")
+                    Log("\(self.candidates[branchHashedString]?.endIndex) == \(indexInBranchPoint)")
                     if indexInBranchChain == 0 {
                         /*
                          As Top Entry of The Branch.
                          */
-                        LogEssential("Top Entry of The Branch Chain.")
+                        Log("Top Entry of The Branch Chain.")
                         self.candidates[branchHashedString]?.append([block])
                     } else {
-                        LogEssential("There is Branch Chain in The Branch Point, Already")
+                        Log("There is Branch Chain in The Branch Point, Already")
                         self.candidates[branchHashedString]?[indexInBranchPoint] += [block]
                     }
 //                        }
                     if let branchChainLength = self.candidates[branchHashedString]?[indexInBranchPoint].count, branchChainLength >= chainSwapRuledBlockCount {
-                        LogEssential("Should Swap Branch to Legitimate Chain's Branch Point. \(branchHashedString)")
+                        Log("Should Swap Branch to Legitimate Chain's Branch Point. \(branchHashedString)")
                         /*
                          Swap Branch to Legitimate Chain's Branch Point.
                          */
                         if let branchPointIndex = self.findBranchPointInLegitimateChain(branchHashedString: branchHashedString) {
-                            LogEssential("Found Branched Point in Legitimate Chain.")
+                            Log("Found Branched Point in Legitimate Chain.")
                             self.blocks = self.blocks[0...branchPointIndex] + (self.candidates[branchHashedString]?[indexInBranchPoint] ?? [])
                         } else {
-                            LogEssential("Not Found Branched Point in Legitimate Chain.")
+                            Log("Not Found Branched Point in Legitimate Chain.")
                         }
                         /*
                          Clear Branches named {branchHashedString}.
@@ -245,7 +245,7 @@ public struct Book {
                      Block is To Chain Next.
                      New Block As Cached Last Block's Next.
                      */
-                    LogEssential("The Block Chained in Legitimate Chain.")
+                    Log("The Block Chained in Legitimate Chain.")
                     //Append A Block
                     self.blocks += [block]
                     /*
@@ -284,7 +284,7 @@ public struct Book {
     }
     
     public mutating func reduceBranch() {
-        LogEssential()
+        Log()
         /*
          Block is Confirmed As There following 4 Blocks, Remove All Branch Chains Rooted Block Before Confirmed Block.
 
@@ -320,17 +320,17 @@ public struct Book {
             [5]
          candidates[{Branch Point 2}][0]
          */
-        LogEssential(self.blocks.endIndex)
+        Log(self.blocks.endIndex)
         let blockBeforeConfirmedBlockIndex = self.blocks.endIndex - (self.chainSwapRuledBlockCount + 2)
-        LogEssential(blockBeforeConfirmedBlockIndex)
+        Log(blockBeforeConfirmedBlockIndex)
         if blockBeforeConfirmedBlockIndex >= 0 {
-            LogEssential()
+            Log()
             let block = self.blocks[blockBeforeConfirmedBlockIndex]
             if let blockHashedString = block.hashedString?.toString, let _ = self.candidates[blockHashedString] {
                 /*
                  Delete Same Start Point Branch Chains, Entire Root.
                  */
-                LogEssential(blockHashedString)
+                Log(blockHashedString)
                 self.candidates[blockHashedString] = nil
             }
         }
@@ -349,14 +349,14 @@ public struct Book {
                 if candidateChainIndex < candidateChain.count {
                     if candidateChain[candidateChainIndex].isEmpty {
                         //empty chain index
-                        LogEssential("Empty Index in Branch named \(block.previousBlockHash.toString): \(candidateChainIndex)")
+                        Log("Empty Index in Branch named \(block.previousBlockHash.toString): \(candidateChainIndex)")
                         candidateIndex = candidateChainIndex
                     }
                 }
             }
         } else {
             //branch is empty
-            LogEssential("Empty in Branch named \(block.previousBlockHash.toString)")
+            Log("Empty in Branch named \(block.previousBlockHash.toString)")
             self.candidates[block.previousBlockHash.toString] = [[Block]]()
             candidateIndex = 0
         }
@@ -385,35 +385,35 @@ public struct Book {
                 //branchChain: [Block, ...MAX 4]
                 if branchChain.element.endIndex < chainSwapRuledBlockCount {
                     //Found available Branch chain
-                    LogEssential()
+                    Log()
                     if let lastBlock = branchChain.element.last, let lastBlockHash = lastBlock.hashedString, lastBlockHash.equal(previousBlockHash) {
-                        LogEssential()
+                        Log()
                         candidateBranchHashString = branchHashString
                         nextDifficulty = lastBlock.nextDifficulty
                         previousBlock = lastBlock
                         indexInBranch = branchChain.element.endIndex
                         indexInChainPoint = branchChain.offset
-                        LogEssential("Found Branch and Index. \(candidateBranchHashString) - \(indexInBranch)")
-                        LogEssential("\(candidateBranchHashString) - \(indexInChainPoint) - \(indexInBranch) - \(nextDifficulty) - \(previousBlock.content.utf8String)")
+                        Log("Found Branch and Index. \(candidateBranchHashString) - \(indexInBranch)")
+                        Log("\(candidateBranchHashString) - \(indexInChainPoint) - \(indexInBranch) - \(nextDifficulty) - \(previousBlock.content.utf8String)")
                         return (candidateBranchHashString, indexInChainPoint, indexInBranch, nextDifficulty, previousBlock)
                     }
                 }
             }
         }
         //There is NOT Branch named {previousBlockHash}.
-        LogEssential("There is NOT Branch named \(previousBlockHash.toString)")
+        Log("There is NOT Branch named \(previousBlockHash.toString)")
         /*
          Confirm Available as Branch Point in Legitimate Chain.
          */
         if let indexInLegitimateChain = self.findBranchPointInLegitimateChain(branchHashedString: previousBlockHash) {
-            LogEssential("Found Available as Branch Point for \(previousBlockHash.toString) til before 4 last in Legitimate Chain")
+            Log("Found Available as Branch Point for \(previousBlockHash.toString) til before 4 last in Legitimate Chain")
             previousBlock = self.blocks[indexInLegitimateChain]
             nextDifficulty = self.blocks[indexInLegitimateChain].nextDifficulty
             self.candidates[previousBlockHash.toString] = [[Block]]()
             indexInChainPoint = 0
             indexInBranch = 0
-            LogEssential("First Block in Branch named \(previousBlockHash.toString)")
-            LogEssential("\(previousBlockHash) - \(indexInBranch) - \(nextDifficulty) - \(previousBlock.content.utf8String)")
+            Log("First Block in Branch named \(previousBlockHash.toString)")
+            Log("\(previousBlockHash) - \(indexInBranch) - \(nextDifficulty) - \(previousBlock.content.utf8String)")
             return (previousBlockHash, indexInChainPoint, indexInBranch, nextDifficulty, previousBlock)
         }
         return nil
@@ -464,42 +464,42 @@ public struct Book {
         let lastBlock = self.lastBlock ?? Block.genesis
         Log(self.blocks.count)
         guard let lastBlockSignature = lastBlock.signature else {
-            LogEssential("The Block to Trash as Signature Invalid.")
+            Log("The Block to Trash as Signature Invalid.")
             return (.omitBlock, Block(Null: ""), Int.max, nil, nil, nil)
         }
         if lastBlockSignature.equal(signatureForBlock) {
             /*
              Duplicate Block
              */
-            LogEssential("The Block to Trash as Signature Duplicate.")
+            Log("The Block to Trash as Signature Duplicate.")
             return (.omitBlock, Block(Null: ""), Int.max, nil, nil, nil)
         }
         
-        LogEssential("Legitimate Chain Chainable? \(previousBlockHash) != \(lastBlock.hashedString)")
+        Log("Legitimate Chain Chainable? \(previousBlockHash) != \(lastBlock.hashedString)")
         if let lastBlockHashedString = lastBlock.hashedString {
             if previousBlockHash.equal(lastBlockHashedString) {
                 /*
                  Block Chainable to Legitimate Chain.
                  */
-                LogEssential("Yes, The Block Chainable with Legitimate Chain.")
+                Log("Yes, The Block Chainable with Legitimate Chain.")
                 //Append A Block
                 return (.chainableBlock, lastBlock, lastBlock.nextDifficulty, nil, nil, nil)
             }
             /*
              Block Not Chainable to Legitimate Chain.
              */
-            LogEssential("No, New Block is NOT Chainable to Legitimate Chain.")
-            LogEssential("So, Should Store as Candidate any Branch Chain? \(previousBlockHash)")
+            Log("No, New Block is NOT Chainable to Legitimate Chain.")
+            Log("So, Should Store as Candidate any Branch Chain? \(previousBlockHash)")
             if let (branchHash, indexInChainPoint, indexInBranchChain, nextDifficulty, previousBlock) = self.branchAndIndex(previousBlockHash: previousBlockHash) {
-                LogEssential("Yes, The Block Store As Candidate Branch named \(branchHash).")
+                Log("Yes, The Block Store As Candidate Branch named \(branchHash).")
                 return (.branchableBlock, previousBlock, nextDifficulty, branchHash, indexInChainPoint, indexInBranchChain)
             }
-            LogEssential("No, The Block Not Chainable to Candidate Branch Chain as Block hash: \(previousBlockHash).")
-            LogEssential("The Block to Trash as Do Not Apply to Legitimate Chain, Candidate Branch Chains.")
+            Log("No, The Block Not Chainable to Candidate Branch Chain as Block hash: \(previousBlockHash).")
+            Log("The Block to Trash as Do Not Apply to Legitimate Chain, Candidate Branch Chains.")
             //The Block to Trash.(Omit the Block.)
             return (.omitBlock, Block(Null: ""), Int.max, nil, nil, nil)
         }
-        LogEssential("The Block to Trash as invalid last block in legitimate Chain.")
+        Log("The Block to Trash as invalid last block in legitimate Chain.")
         return (.omitBlock, Block(Null: ""), Int.max, nil, nil, nil)
     }
 
@@ -511,30 +511,30 @@ public struct Book {
         if chainable is .branchableBlock, this is branchHash as Candidate Branch Chain's key.
      */
     public func takeNextDifficulty(for chainable: ChainableResult, previousBlockHash: HashedString?, indexInBranchPoint: Int?, indexInBranchChain: Int?, branchPoint: HashedString?) -> Difficulty? {
-        LogEssential(chainable)
-        LogEssential(previousBlockHash)
-        LogEssential(indexInBranchChain)
-        LogEssential(indexInBranchPoint)
-        LogEssential(branchPoint)
+        Log(chainable)
+        Log(previousBlockHash)
+        Log(indexInBranchChain)
+        Log(indexInBranchPoint)
+        Log(branchPoint)
         switch chainable {
         case .branchableBlock:
             if let previousBlockHash = previousBlockHash, let indexInBranchChain = indexInBranchChain, let indexInBranchPoint = indexInBranchPoint, let branchHashedString = branchPoint?.toString {
                 if indexInBranchChain == 0 {
-                    LogEssential("No Entries in the Branch Chain cause Top Block in the Branch.")
+                    Log("No Entries in the Branch Chain cause Top Block in the Branch.")
                     if let indexInLegitimateChain = findBranchPointInLegitimateChain(branchHashedString: previousBlockHash) {
                         let nextDifficulty = self.blocks[indexInLegitimateChain].nextDifficulty
-                        LogEssential(nextDifficulty)
+                        Log(nextDifficulty)
                         return nextDifficulty
                     }
                 } else if indexInBranchChain > 0 {
-                    LogEssential("There is Entries in the Branch Chain cause 2nd and later Block in the Branch. \(branchHashedString)")
-                    LogEssential(indexInBranchPoint)
-                    LogEssential(self.candidates[branchHashedString]?.count)
+                    Log("There is Entries in the Branch Chain cause 2nd and later Block in the Branch. \(branchHashedString)")
+                    Log(indexInBranchPoint)
+                    Log(self.candidates[branchHashedString]?.count)
                     guard let branchChains = self.candidates[branchHashedString] else {
                         return nil
                     }
                     let nextDifficulty = branchChains[indexInBranchPoint].last?.nextDifficulty
-                    LogEssential(nextDifficulty)
+                    Log(nextDifficulty)
                     return nextDifficulty
                 } else {
                     return nil
@@ -555,29 +555,29 @@ public struct Book {
         return nil
     }
     public func takeLastBlockDate(for chainable: ChainableResult, branchChainHash: HashedString?, indexInBranchPoint: Int?, indexInBranchChain: Int?) -> Date? {
-        LogEssential(chainable)
-        LogEssential(branchChainHash)
-        LogEssential(indexInBranchPoint)
-        LogEssential(indexInBranchChain)
+        Log(chainable)
+        Log(branchChainHash)
+        Log(indexInBranchPoint)
+        Log(indexInBranchChain)
         switch chainable {
         case .branchableBlock:
             guard let branchChainHash = branchChainHash?.toString, let indexInBranchChain = indexInBranchChain, let indexInBranchPoint = indexInBranchPoint else {
                 return nil
             }
             if indexInBranchChain == 0 {
-                LogEssential("No Entries in the Branch Chain.")
+                Log("No Entries in the Branch Chain.")
                 if let indexInLegitimateChain = findBranchPointInLegitimateChain(branchHashedString: branchChainHash) {
                     let lastBlockDate = self.blocks[indexInLegitimateChain].date
-                    LogEssential(lastBlockDate)
+                    Log(lastBlockDate)
                     return lastBlockDate
                 }
             } else {
                 guard let branchChains = self.candidates[branchChainHash] else {
-                    LogEssential("candidates branch \(branchChainHash) not found.")
+                    Log("candidates branch \(branchChainHash) not found.")
                     return nil
                 }
                 let lastBlockDate = branchChains[indexInBranchPoint].last?.date
-                LogEssential(lastBlockDate)
+                Log(lastBlockDate)
                 return lastBlockDate
             }
         case .chainableBlock:
@@ -589,29 +589,29 @@ public struct Book {
         return nil
     }
     public func makeNextDifficulty(blockDate: Date, chainable: ChainableResult, previousBlockHash: HashedString?, indexInBranchPoint: Int?, branchPoint: HashedString?, indexInBranchChain: Int?) -> Difficulty? {
-        LogEssential(chainable)
+        Log(chainable)
         guard var currentDifficultyAsNonceLeadingZeroLength: Int = self.takeNextDifficulty(for: chainable, previousBlockHash: previousBlockHash, indexInBranchPoint: indexInBranchPoint, indexInBranchChain: indexInBranchChain, branchPoint: branchPoint)?.toInt else {
             return nil
         }
         var lastBlockDate = self.takeLastBlockDate(for: chainable, branchChainHash: branchPoint, indexInBranchPoint: indexInBranchPoint, indexInBranchChain: indexInBranchChain)
-        LogEssential("What will compare for lastBlockDate in make next difficulty.: \(lastBlockDate)")
+        Log("What will compare for lastBlockDate in make next difficulty.: \(lastBlockDate)")
         if let lastBlockDate = lastBlockDate {
             Log("\(lastBlockDate.utcTimeString) - \(blockDate.utcTimeString)")
             let intervalSeconds = blockDate.timeIntervalSince(lastBlockDate)   //As Seconds.
             Log("\(intervalSeconds) < \(Nonce.minimumSecondsInProofOfWorks)")
             if intervalSeconds < Nonce.minimumSecondsInProofOfWorks {
-                LogEssential("Under \(Nonce.minimumSecondsInProofOfWorks / 60) min. in Proof Of Work cause Increment Difficulty.")
+                Log("Under \(Nonce.minimumSecondsInProofOfWorks / 60) min. in Proof Of Work cause Increment Difficulty.")
                 /*
                  Under {Nonce.minimumSecondsInProofOfWorks / 60} minutes,
                     then increment difficulty value.
                  
                  Bring Effect to More Difficult.
                  */
-                LogEssential("Difficulty-- \(currentDifficultyAsNonceLeadingZeroLength)")
+                Log("Difficulty-- \(currentDifficultyAsNonceLeadingZeroLength)")
                 currentDifficultyAsNonceLeadingZeroLength += 1
-                LogEssential("Difficulty++ \(currentDifficultyAsNonceLeadingZeroLength)")
+                Log("Difficulty++ \(currentDifficultyAsNonceLeadingZeroLength)")
             } else {
-                LogEssential("Over \(Nonce.minimumSecondsInProofOfWorks / 60) min. in Proof Of Work, then let Difficulty be.")
+                Log("Over \(Nonce.minimumSecondsInProofOfWorks / 60) min. in Proof Of Work, then let Difficulty be.")
             }
         }
         Log(currentDifficultyAsNonceLeadingZeroLength)

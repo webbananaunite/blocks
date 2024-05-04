@@ -61,7 +61,7 @@ public struct Block {
         }
         Log(blockContentString + reducedTransactions)
         let hashedString = (blockContentString + reducedTransactions).hashedStringAsHex?.toString ?? nil
-        LogEssential(hashedString)
+        Log(hashedString)
         return hashedString
     }
     
@@ -208,9 +208,9 @@ public struct Block {
     }
 
     init?(maker: OverlayNetworkAddressAsHexString, signature: Signature? = nil, previousBlock: Block, nonceAsData: Data? = nil, publicKey: PublicKey, date: String, paddingZeroLengthForNonce: Difficulty? = nil, book: Book, id: BlockIdentification? = nil, chainable: Book.ChainableResult, previousBlockHash: HashedString?, indexInBranchPoint: Int?, branchHash: HashedString?, indexInBranchChain: Int?) {
-        LogEssential(chainable)
-        LogEssential(previousBlockHash)
-        LogEssential(previousBlock.hashedString)
+        Log(chainable)
+        Log(previousBlockHash)
+        Log(previousBlock.hashedString)
         guard let previousBlockHashedString = previousBlock.hashedString, let date = date.date, let nextDifficulty = book.makeNextDifficulty(blockDate: date, chainable: chainable, previousBlockHash: previousBlockHash, indexInBranchPoint: indexInBranchPoint, branchPoint: branchHash, indexInBranchChain: indexInBranchChain) else {
             return nil
         }
@@ -422,7 +422,7 @@ public struct Block {
     public mutating func addTransaction(claim: any Claim, claimObject: any ClaimObject, type: String, makerDhtAddressAsHexString: OverlayNetworkAddressAsHexString, signature: Signature, publicKeyAsData: PublicKey, transactionId: TransactionIdentification, date: Date, chainable: Book.ChainableResult, branchChainHash: HashedString?, indexInBranchChain: Int?) -> Bool {
         Log()
         if isThereSameTransaction(signature: signature) {
-            LogEssential("Duplicate Transaction in Block.")
+            Log("Duplicate Transaction in Block.")
         } else {
             Log()
             /*

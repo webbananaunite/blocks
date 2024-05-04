@@ -54,7 +54,7 @@ kernel void testFunction(device uint64_t& addingExponent       [[ buffer(0) ]],
                          ) {
 //    Log("\(String(describing: fixExponent)) 候補目")
 //    Dump(candidateNonceValue)
-//    LogEssential("+ 2^\(addingExponent)")
+//    Log("+ 2^\(addingExponent)")
     add(addingExponent, candidateNonce, candidateNonceLength); //この関数はDataをLittle Endianとして扱っている
     device uint8_t* addedValue = candidateNonce;
     
