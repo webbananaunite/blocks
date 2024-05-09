@@ -567,7 +567,7 @@ public struct Signer: SignerProtocol {
     private var archiveFilePath: String {
         self.archivedDirectory + self.archiveFile
     }
-    public func recordLibrary() {
+    public func recordLibrary() {Log()
         do {
             if !FileManager.default.fileExists(atPath: self.archivedDirectory) {
                 do {

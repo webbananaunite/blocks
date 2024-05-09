@@ -19,16 +19,7 @@ public func Log(_ object: Any = "", functionName: String = #function, fileName: 
     } else {
         return
     }
-    if className == "Streaming.swift" {
-        return
-    }
-    if className == "Stream+.swift" {
-        return
-    }
     if className == "Data+.swift" {
-        return
-    }
-    if className == "Queue.swift" {
         return
     }
     if className == "Time.swift" {
