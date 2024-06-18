@@ -40,7 +40,7 @@ open class Node: overlayNetwork.Node {
      */
     public func signer() -> Signer? {
         Log()
-        if let signer = _signer {
+        if let _ = _signer {
         } else {
             _signer = Signer(newPrivateKeyOn: self.dhtAddressAsHexString)
         }
@@ -49,6 +49,19 @@ open class Node: overlayNetwork.Node {
     public func setSigner(signer: Signer) {
         Log()
         _signer = signer
+    }
+    /*
+     Make Signer Instance without Store Property and Record Library.
+     */
+    public func silentSigner() -> Signer? {
+        Log()
+        let silentSigner: Signer?
+        if let signer = _signer {
+            silentSigner = signer
+        } else {
+            silentSigner = Signer(newPrivateKeyOn: self.dhtAddressAsHexString)
+        }
+        return silentSigner
     }
     
     /*
@@ -71,8 +84,8 @@ open class Node: overlayNetwork.Node {
     
     public func restore() -> Bool {
         Log("Make Attempt Restore the Node Properties DHTAddress, KeyPairs and Difficulty.")
-        if let signInformation = self.signer()?.fetchLibrary(),
-           let bookInformation = self.book.fetchLibrary(),
+        if let signInformation = self.silentSigner()?.fetchLibrary(),
+//           let bookInformation = self.book.fetchLibrary(),
             let publicKeyForSignatureAsBase64String = signInformation["publicKeyForSignature"],
             let publicKeyForSignatureAsData = publicKeyForSignatureAsBase64String.base64DecodedData,
             let privateKeyForSignatureAsBase64String = signInformation["privateKeyForSignature"],
@@ -86,6 +99,10 @@ open class Node: overlayNetwork.Node {
             Log("Node Information is Restorable.")
             let signer = Signer(publicKeyForSignatureAsData: publicKeyForSignatureAsData, privateKeyForSignatureAsData: privateKeyForSignatureAsData, dhtAddressAsHexString: dhtAddressAsHexString, publicKeyForEncryptionAsData: publicKeyForEncryptionAsData, privateKeyForEncryptionAsData: privateKeyForEncryptionAsData)
             self.setSigner(signer: signer)
+            self.dhtAddressAsHexString = dhtAddressAsHexString
+            if let binaryAddress = dhtAddressAsHexString.toData {
+                self.binaryAddress = binaryAddress
+            }
             return true
         } else {
             Log("Node Properties is NOT Cached.")
