@@ -278,7 +278,8 @@ public enum Command: String, CommandProtocol {
                     Log("No Legitimate Next Difficulty Value cause Omit The Block.")
                     return nil
                 }
-                let allValidTransactions = block.add(multipleMakerTransactions: transactions, chainable: chainable, branchChainHash: branchHashString, indexInBranchChain: indexInBranchChain)
+//                let allValidTransactions = block.add(multipleMakerTransactions: transactions, chainable: chainable, branchChainHash: branchHashString, indexInBranchChain: indexInBranchChain)
+                let allValidTransactions = block.add(multipleMakerTransactions: transactions, chainable: chainable, branchChainHash: branchHashString, indexInBranchChain: indexInBranchChain, node: (node as! Node))
                 /*
                  As Protocol extension can not define settable property,
                  Do Downcast to Node.
@@ -391,7 +392,7 @@ public enum Command: String, CommandProtocol {
                 return nil
             }
             let transactionsAsDictionaryArray = transactionsAsJsonArrayString.jsonToDictionaryArray
-            if block.add(singleMakerTransactions: transactionsAsDictionaryArray, makerDhtAddressAsHexString: makerDhtAddressAsHexString, publicKeyAsData: publicKeyAsData, branchChainHash: nil, indexInBranchChain: nil) {
+            if block.add(singleMakerTransactions: transactionsAsDictionaryArray, makerDhtAddressAsHexString: makerDhtAddressAsHexString, publicKeyAsData: publicKeyAsData, branchChainHash: nil, indexInBranchChain: nil, node: (node as! Node)) {
             } else {
                 return nil
             }

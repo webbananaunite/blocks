@@ -347,7 +347,8 @@ public struct Block {
         ]
      }
      */
-    public mutating func add(multipleMakerTransactions transactionsAsDictionary: [[String : Any]]?, chainable: Book.ChainableResult = .chainableBlock, branchChainHash: HashedString?, indexInBranchChain: Int?) -> Bool {
+//    public mutating func add(multipleMakerTransactions transactionsAsDictionary: [[String : Any]]?, chainable: Book.ChainableResult = .chainableBlock, branchChainHash: HashedString?, indexInBranchChain: Int?) -> Bool {
+    public mutating func add(multipleMakerTransactions transactionsAsDictionary: [[String : Any]]?, chainable: Book.ChainableResult = .chainableBlock, branchChainHash: HashedString?, indexInBranchChain: Int?, node: Node) -> Bool {
         Log(transactionsAsDictionary)
         var addedAll = true
         transactionsAsDictionary?.forEach {
@@ -355,7 +356,7 @@ public struct Block {
             if let makerDhtAddressAsHexString = $0["makerDhtAddressAsHexString"] as? String, let publicKeyAsBase64String = $0["publicKey"] as? String,
                let publicKeyAsData: PublicKey = publicKeyAsBase64String.base64DecodedData {
                 Log()
-                let result = self.add(singleMakerTransactions: [$0], makerDhtAddressAsHexString: makerDhtAddressAsHexString, publicKeyAsData: publicKeyAsData, chainable: chainable, branchChainHash: branchChainHash, indexInBranchChain: indexInBranchChain)
+                let result = self.add(singleMakerTransactions: [$0], makerDhtAddressAsHexString: makerDhtAddressAsHexString, publicKeyAsData: publicKeyAsData, chainable: chainable, branchChainHash: branchChainHash, indexInBranchChain: indexInBranchChain, node: node)
                 if !result {
                     addedAll = false
                 }
@@ -369,7 +370,7 @@ public struct Block {
      Add Single Owner's Transactions to Block.
      Use At Received PT (Publish Transaction) Command.
      */
-    public mutating func add(singleMakerTransactions transactionsAsDictionary: [[String : Any]]?, makerDhtAddressAsHexString: OverlayNetworkAddressAsHexString, publicKeyAsData: PublicKey, chainable: Book.ChainableResult = .chainableBlock, branchChainHash: HashedString?, indexInBranchChain: Int?) -> Bool {
+    public mutating func add(singleMakerTransactions transactionsAsDictionary: [[String : Any]]?, makerDhtAddressAsHexString: OverlayNetworkAddressAsHexString, publicKeyAsData: PublicKey, chainable: Book.ChainableResult = .chainableBlock, branchChainHash: HashedString?, indexInBranchChain: Int?, node: Node) -> Bool {
         Log()
         guard let transactionsAsDictionary = transactionsAsDictionary else {
             return false
@@ -391,26 +392,30 @@ public struct Block {
                 }
             }
         }
+        Log("Transaction Counter in Block Added Single Maker Transactions: \(self.transactions.count)")
         /*
          transaction配列の最後にBooker手数料と
          定期実施 transaction（BasicIncome など）をblockの最後に追加する
-         
-         #pending
          */
-        //        Log(self.transactions.count)
-        //#test 一時的にコメントアウトした #あと　booker手数料
-        //        if self.transactions.count <= Block.maxTransactionsInABlock {
-        //            if let signer = node.signer(), let publicKeyAsBase64String = signer.publicKeyForSignature?.rawRepresentation.base64String {
-        //                let claimObject = ClaimOnPay.Object(destination: "")
-        //                if let bookerFeeTransaction = TransactionType.pay.construct(claim: ClaimOnPay.bookerFee, claimObject: claimObject, makerDhtAddressAsHexString: self.maker, publicKey: publicKeyAsBase64String, book: node.book, signer: signer, peerSigner: signer, creditOnRight: ClaimOnPay.bookerFee.fee),
-        //                    let signatureString = bookerFeeTransaction.signature?.base64String,
-        //                    let transactionId = bookerFeeTransaction.transactionId,
-        //                    let date = bookerFeeTransaction.date {
-        //                    addTransaction(claim: bookerFeeTransaction.claim, claimObject: bookerFeeTransaction.claimObject, type: bookerFeeTransaction.type.rawValue, makerDhtAddressAsHexString: bookerFeeTransaction.makerDhtAddressAsHexString, signature: signatureString, base64EncodedPublicKeyString: bookerFeeTransaction.publicKey, transactionId: transactionId, date: date)
-        //                }
-        //            }
-        //        }
-        Log(self.transactions.count)
+        if self.transactions.count <= Block.maxTransactionsInABlock {
+            if let signer = node.signer(), let publicKeyAsBase64String = signer.publicKeyForSignature?.rawRepresentation.base64String, let publicKey = publicKeyAsBase64String as? PublicKey {
+                let claimObject = ClaimOnPay.Object(destination: "")
+                if let bookerFeeTransaction = TransactionType.pay.construct(claim: ClaimOnPay.bookerFee, claimObject: claimObject, makerDhtAddressAsHexString: self.maker, publicKey: publicKey, book: node.book, signer: signer, peerSigner: signer, creditOnRight: ClaimOnPay.bookerFee.fee),
+                    let bookerFeeTransactionSignature = bookerFeeTransaction.signature,
+                    let transactionId = bookerFeeTransaction.transactionId,
+                    let bookerFeeTransactionPublicKey = bookerFeeTransaction.publicKey,
+                    let date = bookerFeeTransaction.date {
+                    let validTransactionCauseAdded = addTransaction(claim: bookerFeeTransaction.claim, claimObject: bookerFeeTransaction.claimObject, type: bookerFeeTransaction.type.rawValue, makerDhtAddressAsHexString: bookerFeeTransaction.makerDhtAddressAsHexString, signature: bookerFeeTransactionSignature,
+                                   publicKeyAsData: bookerFeeTransactionPublicKey, transactionId: transactionId, date: date, chainable: chainable, branchChainHash: branchChainHash, indexInBranchChain: indexInBranchChain)
+                    if addedAll && validTransactionCauseAdded {
+                        addedAll = true
+                    } else {
+                        addedAll = false
+                    }
+                }
+            }
+        }
+        Log("Transaction Counter in Block Added A Booker Fee Transaction: \(self.transactions.count)")
         return addedAll
     }
 
