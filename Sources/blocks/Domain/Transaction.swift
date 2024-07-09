@@ -206,7 +206,7 @@ public extension Transaction {
          known node:
          predecessor, successor, babysitter(arbitrary node)
          */
-        Log(self.signature?.toString)   //←Transaction#signature これがnilのため実行されない #now
+        Log(self.signature?.toString)
         Log(signer.base64EncodedPublicKeyForSignatureString)
         let signatureString = self.signature?.toString
         Log(signatureString)

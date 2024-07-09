@@ -88,6 +88,10 @@ Use as exchangeable digital currency in cryptocurrency exchange is PROHIBITED.
 
 ## description
 ### words:
+- Boot Node
+
+First Node in Overlay Network (blocks P2P Network).
+
 - Baby Sitter
 
 As A Node Joinning Overlay Network in OSI Session Layer, At First, Take Baby Sitter Node's IP and Port From TXT Record in bind Server.  
@@ -134,14 +138,20 @@ nonce calculator is choosable cpu or gpu.
 
 ## status
 Beta  
+Have Implemented All Features but following Advanced Features.
 
-Have NOT all done functions implementation.  
-- ex. Leaving and returning from DHT Network in overlayNetwork.  
+#### Un Implemented Advanced Features (as 20240709 13:33 JST Tokyo)
+- Complessed Block, Light Node
+- Complessed Command Operand
+- Be Hi-Speed Detect Duplicate Birth Transaction、BasicIncome Transaction
+- Procedure as for Occurred Irregular
+- Write Documents for Developer
+- Make and Boot up Boot Node on Cloud (linux)
+- Beta Test
 
-All implemented version is planned Release at May 2024.  
-
+#### Join us!
 Interested in Building Social Infrastructure by Peer-to-Peer Overlay Network, Block-chain System, On volunteer, please join my Project.  
 
 but, Don't accept application from one related to Cryptocurrency Exchange.  
 
-Let's Have fun!
+Let's Make Our Future!  

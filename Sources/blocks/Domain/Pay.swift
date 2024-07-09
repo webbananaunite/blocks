@@ -73,6 +73,10 @@ public enum ClaimOnPay: String, Claim {
             ].dictionaryToJsonString
         }
     }
+    
+    public func construct(destination: OverlayNetworkAddressAsHexString, publicKeyForEncryption: PublicKeyForEncryption?, combinedSealedBox: String, description: String, attachedFileType: String) -> Object {
+        Object(destination: destination, publicKeyForEncryption: publicKeyForEncryption, combinedSealedBox: combinedSealedBox, description: description, attachedFileType: attachedFileType)
+    }
 
     public func object(content: String) -> ClaimObject? {
         return nil
@@ -137,30 +141,41 @@ public enum ClaimOnPay: String, Claim {
     }
     
     public func reply(to destinationDhtAddress: OverlayNetworkAddressAsHexString, description: String, node: Node, combinedSealedBox: Data?, attachedFileType: FileType?, personalData: ClaimOnPerson.PersonalData?, book: Book, peerSigner: Signer) {
-        guard let signer = node.signer() else {
+        guard let signer = node.signer(), let publicKeyForEncryptionAsData = signer.publicKeyForEncryption?.rawRepresentation else {
             return
         }
-        if let mailBody = self.replyBody(destinationDhtAddress: destinationDhtAddress, description: description, signer: signer, combinedSealedBox: combinedSealedBox, personalDataAsEncrypted: personalData?.encrypt(signer: signer, peerSigner: peerSigner)) {
-            if let publicKeyAsBase64String = signer.base64EncodedPublicKeyForSignatureString, let dataAsJson = try? JSONSerialization.data(withJSONObject: mailBody, options: []) {
-                Log()
-                let textAsBase64String = dataAsJson.base64String
-                Log("Data as base64 string: \(textAsBase64String)")
-                
-                switch self {
-                    //#pending
+        
+        let claimObject = self.construct(destination: destinationDhtAddress, publicKeyForEncryption: publicKeyForEncryptionAsData, combinedSealedBox: combinedSealedBox?.base64String ?? "", description: description, attachedFileType: attachedFileType?.rawValue ?? "")
+        if let publicKeyAsData = signer.publicKeyAsData {
+            Log()
+            //Send Reply mail
+            if let replyClaim = ClaimOnPay(rawValue: self.replyClaim),
+                var transaction = TransactionType.pay.construct(claim: replyClaim, claimObject: claimObject, makerDhtAddressAsHexString: destinationDhtAddress, publicKey: publicKeyAsData, book: book, signer: signer, peerSigner: peerSigner) {
+                transaction.send(node: node, signer: signer)
+            }
+        }
+
+//        let claimObject = ClaimOnPay.Object(destination: destinationDhtAddress)
+//        if let mailBody = self.replyBody(destinationDhtAddress: destinationDhtAddress, description: description, signer: signer, combinedSealedBox: combinedSealedBox, personalDataAsEncrypted: personalData?.encrypt(signer: signer, peerSigner: peerSigner)) {
+//            if let publicKeyAsBase64String = signer.base64EncodedPublicKeyForSignatureString, let dataAsJson = try? JSONSerialization.data(withJSONObject: mailBody, options: []) {
+//                Log()
+//                let textAsBase64String = dataAsJson.base64String
+//                Log("Data as base64 string: \(textAsBase64String)")
+//                
+//                switch self {
 //                case .bookerFee:
-//                    if var transaction = TransactionType.mail.construct(makerDhtAddressAsHexString: destinationDhtAddress, content: textAsBase64String, signer: signer, publicKey: publicKeyAsBase64String, book: book, claim: self) {
+//                    if var transaction = TransactionType.mail.construct(claim: self, claimObject: claimObject, makerDhtAddressAsHexString: destinationDhtAddress, content: textAsBase64String, signer: signer, publicKey: publicKeyAsBase64String, book: book, claim: self) {
 //                        transaction.send(node: node, signer: signer)
 //                    }
 //                case .bookerFeeReply:
 //                    if var transaction = TransactionType.mail.construct(makerDhtAddressAsHexString: destinationDhtAddress, content: textAsBase64String, signer: signer, publicKey: publicKeyAsBase64String, book: book, claim: self) {
 //                        transaction.send(node: node, signer: signer)
 //                    }
-                default:
-                    break
-                }
-            }
-        }
+//                default:
+//                    break
+//                }
+//            }
+//        }
     }
     
 }

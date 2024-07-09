@@ -394,8 +394,7 @@ public struct Block {
         }
         Log("Transaction Counter in Block Added Single Maker Transactions: \(self.transactions.count)")
         /*
-         transaction配列の最後にBooker手数料と
-         定期実施 transaction（BasicIncome など）をblockの最後に追加する
+         Add Booker Fee Transaction into Block.
          */
         if self.transactions.count <= Block.maxTransactionsInABlock {
             if let signer = node.signer(), let publicKeyAsBase64String = signer.publicKeyForSignature?.rawRepresentation.base64String, let publicKey = publicKeyAsBase64String as? PublicKey {
