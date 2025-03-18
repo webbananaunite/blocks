@@ -47,7 +47,11 @@ extension Decimal {
     func validDigitsOfFraction(_ validDigitsOfFraction: Int) -> Bool {
         let integerValue = self.truncateAfterDecimalPoint()
         let decimalValue = self - integerValue
+        #if os(macOS) || os(iOS)
         let decimalAsString = decimalValue.formatted()
+        #else
+        let decimalAsString = "\(decimalValue)"
+        #endif
         let integerAndFractions = decimalAsString.components(separatedBy: ".")
         Log(integerAndFractions.count)
         Log(validDigitsOfFraction)

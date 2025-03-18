@@ -10,8 +10,17 @@
  Transaction    トランザクション
  */
 import Foundation
-import CryptoKit
+//import CryptoKit
 import overlayNetwork
+#if os(macOS) || os(iOS)
+import CryptoKit
+#elseif canImport(Glibc)
+import Glibc
+import Crypto
+#elseif canImport(Musl)
+import Musl
+import Crypto
+#endif
 
 public enum TransactionType: String {
     case pay

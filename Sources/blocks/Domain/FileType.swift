@@ -7,7 +7,13 @@
 //
 
 import Foundation
+#if os(macOS) || os(iOS)
 import UniformTypeIdentifiers
+#elseif canImport(Glibc)
+import Glibc
+#elseif canImport(Musl)
+import Musl
+#endif
 
 public enum FileType: String {
     case zip, audio, movie                  //known files
@@ -20,8 +26,13 @@ public enum FileType: String {
     case csv    //Comma-separated values, or CSV, files
     case usdz   //3D models in the USDZ format with both standalone and AR views for viewing the model
 
+#if os(macOS) || os(iOS)
     /*
      .fileImporter#allowedContentTypes: [.zip, .rtfd, .image, .audio, .movie, .text, .pdf, .json, .yaml]
+     
+     importable
+     withPeriod
+     は使われていない
      */
     public static var importable: [UTType] {
         [.zip, .rtf, .image, .audio, .movie, .text, .pdf, .json, .yaml]
@@ -30,4 +41,5 @@ public enum FileType: String {
     var withPeriod: String {
         "." + self.rawValue
     }
+#endif
 }

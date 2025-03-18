@@ -7,7 +7,16 @@
 //
 
 import Foundation
+//import CryptoKit
+#if os(macOS) || os(iOS)
 import CryptoKit
+#elseif canImport(Glibc)
+import Glibc
+import Crypto
+#elseif canImport(Musl)
+import Musl
+import Crypto
+#endif
 
 public protocol HashedData {
     static var hashedMethod: String {

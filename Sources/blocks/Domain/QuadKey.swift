@@ -7,10 +7,23 @@
 //
 
 import Foundation
+//import CoreLocation
+//import UIKit
+//import MapKit
+#if os(macOS) || os(iOS)
 import CoreLocation
 import UIKit
 import MapKit
+#elseif canImport(Glibc)
+import Glibc
+#elseif canImport(Musl)
+import Musl
+#endif
 
+/*
+ Can NOT use CoreLocation on Linux.
+ */
+#if os(macOS) || os(iOS)
 //------------------------------------------------------------------------------
 // <copyright company="Microsoft">
 //     Copyright (c) 2006-2009 Microsoft Corporation.  All rights reserved.
@@ -296,3 +309,4 @@ open class QuadKey: NSObject, ObservableObject, CLLocationManagerDelegate {
     }
 
 }
+#endif

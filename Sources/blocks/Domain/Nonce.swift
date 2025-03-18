@@ -7,10 +7,21 @@
 //
 
 import Foundation
+//import Metal
+#if os(macOS) || os(iOS)
 import Metal
+#elseif canImport(Glibc)    ///Not Support Metal on Linux cause should Using OpenGL instead.
+import Glibc
+//import Metal
+#elseif canImport(Musl)     ///Not Support Metal on Linux cause should Using OpenGL instead.
+import Musl
+//import Metal
+#endif
 
 /*
  Nonce Value is variable length Binary represented Little Endian.
+ 
+ UseGPU Preprocessor is NOT use on Linux.
  */
 public class Nonce {
     public var asBinary: Data = Data.DataNull       //[UInt8]
@@ -117,6 +128,8 @@ public class Nonce {
     
     #if UseGPU
     /*
+     UseGPU Preprocessor is NOT use on Linux.
+     
      GPU Powered Calculate Nonce.
      */
     let gpuParallelProcedureLength = 1048576
@@ -179,16 +192,21 @@ public class Nonce {
      Thank:
      https://hirauchi-genta.com/swift-metal-gpgpu/
      */
+    #if UseGPU
+    /*
+     UseGPU Preprocessor is NOT use on Linux.
+     */
     //MTLDevice生成
     private let device = MTLCreateSystemDefaultDevice()
     private var library: MTLLibrary?
     private var commandQueue: MTLCommandQueue?
     private var computePipelineState: MTLComputePipelineState?
-    
+    #endif
     private let yCount = 1000
     private let xCount = 1000
     private var candidateNonceValue: [UInt8] = []
 
+    #if UseGPU
     // Metal初期化
     private func initMetal() {
         //MTLLibrary生成
@@ -221,6 +239,7 @@ public class Nonce {
         commandQueue = device.makeCommandQueue()
         Log(commandQueue)
     }
+    #endif
     #if UseGPU
     /*
      GPU Powered Calculate Nonce.

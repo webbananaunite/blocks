@@ -7,10 +7,24 @@
 //
 
 import Foundation
+//import CryptoKit
+//import Security
+import overlayNetwork
+#if os(macOS) || os(iOS)
 import CryptoKit
 import Security
-import overlayNetwork
+#elseif canImport(Glibc)
+import Glibc
+import Crypto
+#elseif canImport(Musl)
+import Musl
+import Crypto
+#endif
 
+/*
+ Key Store is NOT use on Linux.
+ */
+#if os(macOS) || os(iOS)
 /*
  Storing Keys in Key Chain
 
@@ -91,6 +105,7 @@ struct GenericPasswordStore {
         }
     }
 }
+#endif
 
 public protocol SignerProtocol {
     associatedtype PrivateKeyForSignatureType: SignaturePrivateKeyProtocol
