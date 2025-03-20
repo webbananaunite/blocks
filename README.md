@@ -2,7 +2,7 @@
 [日本語](READMEjp.md)
 
 ## All We Did up to 20250318
-All Done applied on Linux Platform except Calculate Nonce as same Code as iOS/iPadOS. Should be install Swift Compiler to Linux [download](https://www.swift.org/install/macos/)https://www.swift.org/install/macos/.  
+All Done applied on Linux Platform except Calculate Nonce as same Code as iOS/iPadOS. Should be install Swift Compiler to Linux [download](https://www.swift.org/install/linux/#platforms)https://www.swift.org/install/linux/#platforms.  
 
 Running BootNode in Public Network. (Library will find out TXT Records on Name Server.) But it is cheep environment cause Suddenly Stop BootNode as Shorting Memory.  
 
