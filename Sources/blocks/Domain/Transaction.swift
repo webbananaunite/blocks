@@ -446,7 +446,8 @@ public extension Transaction {
         return (false, nil)
     }
 
-    static func == (lhs: any Transaction, rhs: any Transaction) -> Bool {
+//    static func == (lhs: any Transaction, rhs: any Transaction) -> Bool {
+    static func == (lhs: Self, rhs: Self) -> Bool {
         guard let lhsTransactionId = lhs.transactionId, let rhsTransactionId = rhs.transactionId else {
             return false
         }
@@ -469,7 +470,8 @@ public protocol Transaction: Hashable {
     /*
      Identifiable
      */
-    static func == (lhs: any Transaction, rhs: any Transaction) -> Bool
+//    static func == (lhs: any Transaction, rhs: any Transaction) -> Bool
+    static func == (lhs: Self, rhs: Self) -> Bool
 
     var date: Date? {
         get set

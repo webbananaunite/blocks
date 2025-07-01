@@ -5,12 +5,22 @@ import PackageDescription
 
 #if os(Linux)
 /*
- as Build on Linux.
+ as Build on macOS. in 20250530
 
+ //
+ //download & install Swifty tool chain & Static linux sdk
+ //
+ $ curl -O https://download.swift.org/swiftly/darwin/swiftly.pkg && installer -pkg swiftly.pkg -target CurrentUserHomeDirectory && ~/.swiftly/bin/swiftly init --quiet-shell-followup && . ${SWIFTLY_HOME_DIR:-~/.swiftly}/env.sh && hash -r
+ $ download Static Linux SDK https://www.swift.org/install/macos/
+ $ xattr -d -r -s com.apple.quarantine "{Downloads dir}/swift-6.1.2-RELEASE_static-linux-0.0.1.artifactbundle.tar"
+ $ swift sdk install {Downloads dir}/swift-6.1.2-RELEASE_static-linux-0.0.1.artifactbundle.tar --checksum df0b40b9b582598e7e3d70c82ab503fd6fbfdff71fd17e7f1ab37115a0665b3b
+ //
+ //cross compile for Linux
+ //
  $ cd {Project Directory}
- $ TOOLCHAINS=org.swift.600202407161a swift build -v --swift-sdk x86_64-swift-linux-musl --build-path {App Output Path}/overlayNetwork
+ $ TOOLCHAINS=org.swift.612202505261a swift build -v --swift-sdk x86_64-swift-linux-musl --build-path {App Output Path}/Testy
  */
-let includePath = "/Users/yoichi/Library/org.swift.swiftpm/swift-sdks/swift-6.0-DEVELOPMENT-SNAPSHOT-2024-07-02-a_static-linux-0.0.1.artifactbundle/swift-6.0-DEVELOPMENT-SNAPSHOT-2024-07-02-a_static-linux-0.0.1/swift-linux-musl/musl-1.2.5.sdk/x86_64/usr/include"
+let includePath = "/Users/yoichi/Library/org.swift.swiftpm/swift-sdks/swift-6.1.2-RELEASE_static-linux-0.0.1.artifactbundle/swift-6.1.2-RELEASE_static-linux-0.0.1/swift-linux-musl/musl-1.2.5.sdk/x86_64/usr/include"
 #else
 #endif
 var productsSettings: [PackageDescription.Product] = []
@@ -27,7 +37,7 @@ productsSettings = [
 ]
 dependenciesSettings = [
     // Dependencies declare other packages that this package depends on.
-    .package(url: "https://github.com/webbananaunite/overlayNetwork", .upToNextMajor(from: "0.4.0")),
+    .package(url: "https://github.com/webbananaunite/overlayNetwork", .upToNextMajor(from: "0.5.0")),   //using source code in github
 //    .package(name: "overlayNetwork", path: "../overlayNetwork"),  //using local source code.
     .package(url: "https://github.com/apple/swift-crypto.git", .upToNextMajor(from: "3.4.0"))   //using as import Crypto
 ]

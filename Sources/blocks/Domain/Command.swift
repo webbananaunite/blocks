@@ -121,7 +121,7 @@ public enum Command: String, CommandProtocol {
     }
     
     public func receive(node: inout any NodeProtocol, operands: String, from fromNodeOverlayNetworkAddress: OverlayNetworkAddressAsHexString, token: String) -> String? {
-        Log("\(self.rawValue) \(operands) \(token) From: \(fromNodeOverlayNetworkAddress) in Premium Command.")
+        LogEssential("\(self.rawValue) \(operands) \(token) From: \(fromNodeOverlayNetworkAddress) in Premium Command.")
         let operandArray = operandTakeApart(operands: operands)
         Log(operandArray)
         Log("\(operandArray.count) : \(self.allowedOperandsCountRange())")
