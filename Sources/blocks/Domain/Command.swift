@@ -36,7 +36,8 @@ public enum Command: String, CommandProtocol {
     case invalidBlock = "IV"
     case invalidBlockReply = "IV_"
 
-    case other = "ZZ"
+//    case other = "ZZ"
+    case other = ""
 
     public static func command(_ command: String) -> Command {
         switch command {
@@ -147,7 +148,7 @@ public enum Command: String, CommandProtocol {
                 doneAllFollowingJobs = runningJob == nil ? true : false
             }
             Log(doneAllFollowingJobs)
-            node.printQueue(job: updatedJob)
+//            node.printQueue(job: updatedJob)
         } else { Log()
             /*
              New Job
