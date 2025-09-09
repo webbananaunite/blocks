@@ -37,7 +37,7 @@ productsSettings = [
 ]
 dependenciesSettings = [
     // Dependencies declare other packages that this package depends on.
-    .package(url: "https://github.com/webbananaunite/overlayNetwork", .upToNextMajor(from: "0.5.2")),   //using source code in github
+    .package(url: "https://github.com/webbananaunite/overlayNetwork", .upToNextMajor(from: "0.5.3")),   //using source code in github
 //    .package(name: "overlayNetwork", path: "../overlayNetwork"),  //using local source code.
     .package(url: "https://github.com/apple/swift-crypto.git", .upToNextMajor(from: "3.4.0"))   //using as import Crypto
 ]
@@ -77,7 +77,8 @@ let package = Package(
     platforms: [
         .iOS(.v16),
         .watchOS(.v9),
-        .tvOS(.v16)
+        .tvOS(.v16),
+        .macOS(.v13)
     ],
     products: productsSettings,
     dependencies: dependenciesSettings,

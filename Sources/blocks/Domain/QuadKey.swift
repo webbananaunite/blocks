@@ -12,8 +12,12 @@ import Foundation
 //import MapKit
 #if os(macOS) || os(iOS)
 import CoreLocation
-import UIKit
 import MapKit
+#if os(iOS)
+import UIKit
+#elseif os(macOS)
+import AppKit
+#endif
 #elseif canImport(Glibc)
 import Glibc
 #elseif canImport(Musl)
@@ -280,14 +284,18 @@ open class QuadKey: NSObject, ObservableObject, CLLocationManagerDelegate {
     }
     
     private func requestLocation() {
+#if os(iOS)
         if (self.gpsManager.authorizationStatus == .authorizedWhenInUse) {
             self.gpsManager.requestLocation()
         }
+#elseif os(macOS)
+#endif
     }
     
     /*
      Map
      */
+#if os(iOS)
     @objc public func longPressedAction(_ gestureRecognizer: UIGestureRecognizer) {
         /*
          Get LatLong on Pressing Point.
@@ -307,6 +315,27 @@ open class QuadKey: NSObject, ObservableObject, CLLocationManagerDelegate {
         annotation.coordinate = newCoordinates
         map.addAnnotation(annotation)
     }
+#elseif os(macOS)
+    @objc public func longPressedAction(_ gestureRecognizer: NSGestureRecognizer) {
+        /*
+         Get LatLong on Pressing Point.
+         */
+        guard let map = gestureRecognizer.view as? MKMapView else {
+            return
+        }
+        let touchPoint = gestureRecognizer.location(in: gestureRecognizer.view)
+        let newCoordinates = map.convert(touchPoint, toCoordinateFrom: gestureRecognizer.view)
+        self.latlong = newCoordinates
+        
+        /*
+         Make Annotation
+         */
+        //        let annotation = PinAnnotation()
+        let annotation = MKPointAnnotation()
+        annotation.coordinate = newCoordinates
+        map.addAnnotation(annotation)
+    }
+#endif
 
 }
 #endif

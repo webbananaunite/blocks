@@ -1,5 +1,9 @@
 # BlockChain Library Suite
 
+## Applied UnConnect Exception and Heart Beat 20250909JST
+Connectできない場合の例外に対応しました。  
+Heart Beatに対応しました。  
+
 ## all we did up 20250806 1900JST
 見直したソケット通信におけるNATトラバーサルでハンドシェイク機能を修正しました。  
 
