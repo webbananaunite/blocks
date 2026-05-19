@@ -44,7 +44,7 @@ public struct Transactions {
              "transactionId": PScf83e1357eefb8bdf1542850d66d8007d620e4050b5715dc83f4a921d36ce9ce47d0d13c5d85f2b0ff8318d2877eec2f63b931bd47417a81a538327af927da3e
              ])
              */
-            Log(self.dictionary)
+            Log(self.dictionary as Any)
             if let dictionary = self.dictionary,
                let signatureBase64 = dictionary["signature"] as? String,
                let signature = signatureBase64.base64DecodedData,
@@ -63,7 +63,7 @@ public struct Transactions {
                let dateString = dictionary["date"] as? String {
                 Log("claim: \(claim)")
                 Log("claimContentAsJsonString: \(claimContentAsJsonString)")
-                Log("publickey: \(signer.publicKeyAsData?.publicKeyToString)")
+                Log("publickey: \(String(describing: signer.publicKeyAsData?.publicKeyToString))")
                 Log("signature: \(signature.base64String)")
                 Log("signatureData: \(signature.base64String)")
                 Log("makerDhtAddressAsHexString: \(signer.makerDhtAddressAsHexString)")
@@ -95,7 +95,7 @@ public struct Transactions {
 
         public var stringToTransactions: [any Transaction]? {
             do {
-                Log(self.string)
+                Log(self.string as Any)
                 if let data = self.string?.utf8DecodedData {
                     Log("\(data.utf8String ?? "")")
                     let jsonData = try JSONSerialization.jsonObject(with: data, options: .allowFragments)
@@ -108,7 +108,7 @@ public struct Transactions {
                             Log()
                             return jsonDictionaryArray.map { (jsonDictionary) -> (any Transaction)? in
                                 let jsonMaker = Maker(book: self.book, dictionary: jsonDictionary, signer: self.signer)
-                                Log(jsonDictionary)
+                                Log(jsonDictionary as Any)
                                 return jsonMaker.dictionaryToTransaction
                             }.compactMap {
                                 $0
@@ -160,8 +160,8 @@ public struct Transactions {
     public func publish(on node: Node, with signer: Signer) {
         Log()
         if let transaction = self.transactions.first {
-            Log(transaction.signature?.toString)
-            Log(signer.base64EncodedPublicKeyForSignatureString)
+            Log(transaction.signature?.toString as Any)
+            Log(signer.base64EncodedPublicKeyForSignatureString as Any)
             var operands = [String]()
             if let signatureString = transaction.signature?.toString, let publicKeyAsBase64String = signer.base64EncodedPublicKeyForSignatureString, let dateString = transaction.date?.utcTimeString {
                 operands = [transaction.type.rawValue, signatureString, publicKeyAsBase64String, transaction.makerDhtAddressAsHexString.toString, dateString, "\(self.transactions.count)"]

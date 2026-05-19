@@ -61,7 +61,7 @@ public struct Block {
         }
         Log(blockContentString + reducedTransactions)
         let hashedString = (blockContentString + reducedTransactions).hashedStringAsHex?.toString ?? nil
-        Log(hashedString)
+        Log(hashedString as Any)
         return hashedString
     }
     
@@ -209,8 +209,8 @@ public struct Block {
 
     init?(maker: OverlayNetworkAddressAsHexString, signature: Signature? = nil, previousBlock: Block, nonceAsData: Data? = nil, publicKey: PublicKey, date: String, paddingZeroLengthForNonce: Difficulty? = nil, book: Book, id: BlockIdentification? = nil, chainable: Book.ChainableResult, previousBlockHash: HashedString?, indexInBranchPoint: Int?, branchHash: HashedString?, indexInBranchChain: Int?) {
         Log(chainable)
-        Log(previousBlockHash)
-        Log(previousBlock.hashedString)
+        Log(previousBlockHash as Any)
+        Log(previousBlock.hashedString as Any)
         guard let previousBlockHashedString = previousBlock.hashedString, let date = date.date, let nextDifficulty = book.makeNextDifficulty(blockDate: date, chainable: chainable, previousBlockHash: previousBlockHash, indexInBranchPoint: indexInBranchPoint, branchPoint: branchHash, indexInBranchChain: indexInBranchChain) else {
             return nil
         }
@@ -349,7 +349,7 @@ public struct Block {
      */
 //    public mutating func add(multipleMakerTransactions transactionsAsDictionary: [[String : Any]]?, chainable: Book.ChainableResult = .chainableBlock, branchChainHash: HashedString?, indexInBranchChain: Int?) -> Bool {
     public mutating func add(multipleMakerTransactions transactionsAsDictionary: [[String : Any]]?, chainable: Book.ChainableResult = .chainableBlock, branchChainHash: HashedString?, indexInBranchChain: Int?, node: Node) -> Bool {
-        Log(transactionsAsDictionary)
+        Log(transactionsAsDictionary as Any)
         var addedAll = true
         transactionsAsDictionary?.forEach {
             Log($0)
@@ -379,7 +379,7 @@ public struct Block {
         let signerOnTransactionMaker = Signer(publicKeyAsData: publicKeyAsData, makerDhtAddressAsHexString: makerDhtAddressAsHexString)
         let transactionAsJsonArrayString = transactionsAsDictionary.dictionarysToJsonString
         let transactions = Transactions.Maker(book: self.book, string: transactionAsJsonArrayString, signer: signerOnTransactionMaker).stringToTransactions
-        Log(transactions?.count)
+        Log(transactions?.count as Any)
         transactions?.forEach {
             Log()
             if let transactionSignature = $0.signature, let transactionId = $0.transactionId, let date = $0.date, let publicKey = $0.publicKey {
@@ -448,7 +448,7 @@ public struct Block {
                 if let transaction = type.construct(claim: claim, claimObject: claimObject, makerDhtAddressAsHexString: makerDhtAddressAsHexString, publicKey: publicKeyAsData, signature: signatureData, book: self.book, signer: signer, transactionId: transactionId, date: date) {
                     Log(transaction.jsonString)
                     if transaction.validate(chainable: chainable, branchChainHash: branchChainHash, indexInBranchChain: indexInBranchChain) {
-                        Log("Valid Transaction Cause Add to Block. \(transaction.transactionId)")
+                        Log("Valid Transaction Cause Add to Block. \(String(describing: transaction.transactionId))")
                         self.transactions += [transaction]
                         return true
                     }
@@ -504,7 +504,7 @@ public struct Block {
             Log()
             do {
                 if let _ = signer.privateKeyForSignature {
-                    Log(signer.privateKeyForSignature?.rawRepresentation.base64String)
+                    Log(signer.privateKeyForSignature?.rawRepresentation.base64String as Any)
                     try sign(with: signer)
                 }
             } catch {
@@ -527,7 +527,7 @@ public struct Block {
             Log()
             do {
                 if let _ = signer.privateKeyForSignature {
-                    Log(signer.privateKeyForSignature?.rawRepresentation.base64String)
+                    Log(signer.privateKeyForSignature?.rawRepresentation.base64String as Any)
                     try sign(with: signer)
                 }
             } catch {
@@ -551,16 +551,16 @@ public struct Block {
          known node:
          predecessor, successor, babysitter(arbitrary node)
          */
-        guard let signatureString = self.signature?.toString else {
+        guard let _ = self.signature?.toString else {
             Log("Void Signature cause Can NOT Publish Block.")
             return
         }
-        Log(signer.privateKeyForSignature?.rawRepresentation.base64String)
+        Log(signer.privateKeyForSignature?.rawRepresentation.base64String as Any)
         
         do {
             let contentAsData = self.content
-            Log("contents: \(contentAsData.utf8String)")    //平文
-            Log(contentAsData.utf8String)
+            Log("contents: \(String(describing: contentAsData.utf8String))")    //平文
+            Log(contentAsData.utf8String as Any)
             let operands = [self.type.rawValue, self.date.toUTCString, contentAsData.utf8String]
 
             //↓ オペランドを圧縮する場合
@@ -572,8 +572,8 @@ public struct Block {
             //                Log(compressedData.count)
             //                let operands = [self.type.rawValue, compressedData.base64String, signatureString, signer.base64EncodedPublicKeyForSignatureString, self.maker]
             Log(operands)
-            Log(node.predecessor?.getIp)
-            Log(node.predecessor?.dhtAddressAsHexString)
+            Log(node.predecessor?.getIp as Any)
+            Log(node.predecessor?.dhtAddressAsHexString as Any)
             if let predecessorOverlayNetworkAddress = node.predecessor?.dhtAddressAsHexString {
                 serialQueue.async {
                     Command.publishBlock.send(node: node, to: predecessorOverlayNetworkAddress, operands: operands) { string in
@@ -581,8 +581,8 @@ public struct Block {
                     }
                 }
             }
-            Log(node.successor?.getIp)
-            Log(node.successor?.dhtAddressAsHexString)
+            Log(node.successor?.getIp as Any)
+            Log(node.successor?.dhtAddressAsHexString as Any)
             if let successorOverlayNetworkAddress = node.successor?.dhtAddressAsHexString {
                 serialQueue.async {
                     Command.publishBlock.send(node: node, to: successorOverlayNetworkAddress, operands: operands) { string in
@@ -590,8 +590,8 @@ public struct Block {
                     }
                 }
             }
-            Log(node.babysitterNode?.getIp)
-            Log(node.babysitterNode?.dhtAddressAsHexString)
+            Log(node.babysitterNode?.getIp as Any)
+            Log(node.babysitterNode?.dhtAddressAsHexString as Any)
             if let babysitterOverlayNetworkAddress = node.babysitterNode?.dhtAddressAsHexString {
                 serialQueue.async {
                     Command.publishBlock.send(node: node, to: babysitterOverlayNetworkAddress, operands: operands) { string in
@@ -622,11 +622,11 @@ public struct Block {
         Log()
         if let contentHashedData = self.contentForSignAndValidate.hashedData?.toData, let signature = try signer.sign(contentAsData: contentHashedData) {
             Log("SIGN#-- Block")
-            Log("raw data: \(self.contentForSignAndValidate.utf8String)")
+            Log("raw data: \(String(describing: self.contentForSignAndValidate.utf8String))")
             Log("data: \(self.contentForSignAndValidate.base64String)")
             Log("hash: \(contentHashedData.base64String)")
             Log("signature: \(signature.toString)")
-            Log("publicKey: \(signer.publicKeyForSignature?.rawRepresentation.base64String)")
+            Log("publicKey: \(String(describing: signer.publicKeyForSignature?.rawRepresentation.base64String))")
             self.signature = signature
         }
     }
@@ -771,11 +771,11 @@ public struct Block {
             Log()
             if let contentHashedData = self.contentForSignAndValidate.hashedData?.toData {
                 Log("SIGN#++ Block")
-                Log("raw data: \(self.contentForSignAndValidate.utf8String)")
+                Log("raw data: \(String(describing: self.contentForSignAndValidate.utf8String))")
                 Log("data: \(self.contentForSignAndValidate.base64String)")
                 Log("hash: \(contentHashedData.base64String)")
                 Log("signature: \(signature.toString)")
-                Log("publicKey: \(signer.publicKeyForSignature?.rawRepresentation.base64String)")
+                Log("publicKey: \(String(describing: signer.publicKeyForSignature?.rawRepresentation.base64String))")
                 do {
                     return try self.verify(data: contentHashedData, signature: signature, signer: signer)
                 } catch {
@@ -791,7 +791,7 @@ public struct Block {
         Log("Verify Block.")
         Log(data.base64String)
         Log(signature.toString)
-        Log(signer.publicKeyForSignature?.rawRepresentation.base64String)
+        Log(signer.publicKeyForSignature?.rawRepresentation.base64String as Any)
         
         let verifySucceeded = try signer.verify(data: data, signature: signature)
         Log("Verify Block? \(verifySucceeded)")

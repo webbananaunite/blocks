@@ -65,7 +65,7 @@ public struct Book {
     public func extract(node: Node, transactionType: TransactionType, claim: (any Claim)? = nil, condition: String = "") -> [any Transaction] {
         Log()
         Log(transactionType)
-        Log(claim)
+        Log(claim as Any)
         Log(node.dhtAddressAsHexString)
         var transactions = [any Transaction]()
         blocks.forEach {
@@ -173,7 +173,7 @@ public struct Book {
         let signer = Signer(publicKeyAsData: publicKeyAsData, makerDhtAddressAsHexString: block.maker)
         if let signatureData = block.signature {
             if block.validate(signature: signatureData, signer: signer, chainable: chainable, branchChainHash: branchHashString, indexInBranchChain: indexInBranchChain) {
-                Log("Validated A Block. id: \(block.id) hashedString: \(block.hashedString)")
+                Log("Validated A Block. id: \(block.id) hashedString: \(String(describing: block.hashedString))")
                 /*
                  difficulty
                  
@@ -209,9 +209,9 @@ public struct Book {
                     Log(indexInBranchPoint)
                     Log(indexInBranchChain)
                     Log(self.candidates.count)
-                    Log(self.candidates[branchHashString.toString]?.count)
+                    Log(self.candidates[branchHashString.toString]?.count as Any)
                     let branchHashedString = branchHashString.toString
-                    Log("\(self.candidates[branchHashedString]?.endIndex) == \(indexInBranchPoint)")
+                    Log("\(String(describing: self.candidates[branchHashedString]?.endIndex)) == \(indexInBranchPoint)")
                     if indexInBranchChain == 0 {
                         /*
                          As Top Entry of The Branch.
@@ -260,7 +260,7 @@ public struct Book {
                 print("[Legitimate Chain]")
                 if self.blocks.count == 0 {print("legitimate chain none")}
                 for block in self.blocks.enumerated() {
-                    print("legitimate chain \(block.offset): \(block.element.id) - \(block.element.hashedString) - \(block.element.difficultyAsNonceLeadingZeroLength) - \(block.element.nextDifficulty)", terminator: "\n")
+                    print("legitimate chain \(block.offset): \(block.element.id) - \(String(describing: block.element.hashedString)) - \(block.element.difficultyAsNonceLeadingZeroLength) - \(block.element.nextDifficulty)", terminator: "\n")
                 }
                 print("[Candidate Chains]")
                 if self.candidates.count == 0 {print("candidate branch chain none")}
@@ -269,7 +269,7 @@ public struct Book {
                     for branch in branches.value.enumerated() {
                         print("Branch: \(branch.offset)")
                         for block in branch.element.enumerated() {
-                            print("branch chain \(block.offset): \(block.element.id) - \(block.element.hashedString) - \(block.element.difficultyAsNonceLeadingZeroLength) - \(block.element.nextDifficulty)", terminator: "\n")
+                            print("branch chain \(block.offset): \(block.element.id) - \(String(describing: block.element.hashedString)) - \(block.element.difficultyAsNonceLeadingZeroLength) - \(block.element.nextDifficulty)", terminator: "\n")
                         }
                     }
                 }
@@ -394,7 +394,7 @@ public struct Book {
                         indexInBranch = branchChain.element.endIndex
                         indexInChainPoint = branchChain.offset
                         Log("Found Branch and Index. \(candidateBranchHashString) - \(indexInBranch)")
-                        Log("\(candidateBranchHashString) - \(indexInChainPoint) - \(indexInBranch) - \(nextDifficulty) - \(previousBlock.content.utf8String)")
+                        Log("\(candidateBranchHashString) - \(indexInChainPoint) - \(indexInBranch) - \(nextDifficulty) - \(String(describing: previousBlock.content.utf8String))")
                         return (candidateBranchHashString, indexInChainPoint, indexInBranch, nextDifficulty, previousBlock)
                     }
                 }
@@ -413,7 +413,7 @@ public struct Book {
             indexInChainPoint = 0
             indexInBranch = 0
             Log("First Block in Branch named \(previousBlockHash.toString)")
-            Log("\(previousBlockHash) - \(indexInBranch) - \(nextDifficulty) - \(previousBlock.content.utf8String)")
+            Log("\(previousBlockHash) - \(indexInBranch) - \(nextDifficulty) - \(String(describing: previousBlock.content.utf8String))")
             return (previousBlockHash, indexInChainPoint, indexInBranch, nextDifficulty, previousBlock)
         }
         return nil
@@ -447,7 +447,7 @@ public struct Book {
         print("[Legitimate Chain]")
         if self.blocks.count == 0 {print("legitimate chain none")}
         for block in self.blocks.enumerated() {
-            print("legitimate chain \(block.offset): \(block.element.id) - \(block.element.hashedString) - \(block.element.difficultyAsNonceLeadingZeroLength) - \(block.element.nextDifficulty)", terminator: "\n")
+            print("legitimate chain \(block.offset): \(block.element.id) - \(String(describing: block.element.hashedString)) - \(block.element.difficultyAsNonceLeadingZeroLength) - \(block.element.nextDifficulty)", terminator: "\n")
         }
         print("[Candidate Chains]")
         if self.candidates.count == 0 {print("candidate branch chain none")}
@@ -456,7 +456,7 @@ public struct Book {
             for branch in branches.value.enumerated() {
                 print("Branch: \(branch.offset)")
                 for block in branch.element.enumerated() {
-                    print("branch chain \(block.offset): \(block.element.id) - \(block.element.hashedString) - \(block.element.difficultyAsNonceLeadingZeroLength) - \(block.element.nextDifficulty)", terminator: "\n")
+                    print("branch chain \(block.offset): \(block.element.id) - \(String(describing: block.element.hashedString)) - \(block.element.difficultyAsNonceLeadingZeroLength) - \(block.element.nextDifficulty)", terminator: "\n")
                 }
             }
         }
@@ -475,7 +475,7 @@ public struct Book {
             return (.omitBlock, Block(Null: ""), Int.max, nil, nil, nil)
         }
         
-        Log("Legitimate Chain Chainable? \(previousBlockHash) != \(lastBlock.hashedString)")
+        Log("Legitimate Chain Chainable? \(previousBlockHash) != \(String(describing: lastBlock.hashedString))")
         if let lastBlockHashedString = lastBlock.hashedString {
             if previousBlockHash.equal(lastBlockHashedString) {
                 /*
@@ -512,10 +512,10 @@ public struct Book {
      */
     public func takeNextDifficulty(for chainable: ChainableResult, previousBlockHash: HashedString?, indexInBranchPoint: Int?, indexInBranchChain: Int?, branchPoint: HashedString?) -> Difficulty? {
         Log(chainable)
-        Log(previousBlockHash)
-        Log(indexInBranchChain)
-        Log(indexInBranchPoint)
-        Log(branchPoint)
+        Log(previousBlockHash as Any)
+        Log(indexInBranchChain as Any)
+        Log(indexInBranchPoint as Any)
+        Log(branchPoint as Any)
         switch chainable {
         case .branchableBlock:
             if let previousBlockHash = previousBlockHash, let indexInBranchChain = indexInBranchChain, let indexInBranchPoint = indexInBranchPoint, let branchHashedString = branchPoint?.toString {
@@ -529,12 +529,12 @@ public struct Book {
                 } else if indexInBranchChain > 0 {
                     Log("There is Entries in the Branch Chain cause 2nd and later Block in the Branch. \(branchHashedString)")
                     Log(indexInBranchPoint)
-                    Log(self.candidates[branchHashedString]?.count)
+                    Log(self.candidates[branchHashedString]?.count as Any)
                     guard let branchChains = self.candidates[branchHashedString] else {
                         return nil
                     }
                     let nextDifficulty = branchChains[indexInBranchPoint].last?.nextDifficulty
-                    Log(nextDifficulty)
+                    Log(nextDifficulty as Any)
                     return nextDifficulty
                 } else {
                     return nil
@@ -556,9 +556,9 @@ public struct Book {
     }
     public func takeLastBlockDate(for chainable: ChainableResult, branchChainHash: HashedString?, indexInBranchPoint: Int?, indexInBranchChain: Int?) -> Date? {
         Log(chainable)
-        Log(branchChainHash)
-        Log(indexInBranchPoint)
-        Log(indexInBranchChain)
+        Log(branchChainHash as Any)
+        Log(indexInBranchPoint as Any)
+        Log(indexInBranchChain as Any)
         switch chainable {
         case .branchableBlock:
             guard let branchChainHash = branchChainHash?.toString, let indexInBranchChain = indexInBranchChain, let indexInBranchPoint = indexInBranchPoint else {
@@ -577,7 +577,7 @@ public struct Book {
                     return nil
                 }
                 let lastBlockDate = branchChains[indexInBranchPoint].last?.date
-                Log(lastBlockDate)
+                Log(lastBlockDate as Any)
                 return lastBlockDate
             }
         case .chainableBlock:
@@ -593,8 +593,8 @@ public struct Book {
         guard var currentDifficultyAsNonceLeadingZeroLength: Int = self.takeNextDifficulty(for: chainable, previousBlockHash: previousBlockHash, indexInBranchPoint: indexInBranchPoint, indexInBranchChain: indexInBranchChain, branchPoint: branchPoint)?.toInt else {
             return nil
         }
-        var lastBlockDate = self.takeLastBlockDate(for: chainable, branchChainHash: branchPoint, indexInBranchPoint: indexInBranchPoint, indexInBranchChain: indexInBranchChain)
-        Log("What will compare for lastBlockDate in make next difficulty.: \(lastBlockDate)")
+        let lastBlockDate = self.takeLastBlockDate(for: chainable, branchChainHash: branchPoint, indexInBranchPoint: indexInBranchPoint, indexInBranchChain: indexInBranchChain)
+        Log("What will compare for lastBlockDate in make next difficulty.: \(String(describing: lastBlockDate))")
         if let lastBlockDate = lastBlockDate {
             Log("\(lastBlockDate.utcTimeString) - \(blockDate.utcTimeString)")
             let intervalSeconds = blockDate.timeIntervalSince(lastBlockDate)   //As Seconds.

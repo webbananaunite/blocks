@@ -36,7 +36,6 @@ public enum Command: String, CommandProtocol {
     case invalidBlock = "IV"
     case invalidBlockReply = "IV_"
 
-//    case other = "ZZ"
     case other = ""
 
     public static func command(_ command: String) -> Command {
@@ -99,12 +98,10 @@ public enum Command: String, CommandProtocol {
         switch self {
             //Block chain
         case .publishTransaction:
-//            return 4..<99
             return 4..<9
         case .publishTransactionReply:
             return nil
         case .publishBlock:
-//            return 6..<99
             return 3..<4
         case .publishBlockReply:
             return nil
@@ -125,7 +122,7 @@ public enum Command: String, CommandProtocol {
         LogEssential("\(self.rawValue) \(operands) \(token) From: \(fromNodeOverlayNetworkAddress) in Premium Command.")
         let operandArray = operandTakeApart(operands: operands)
         Log(operandArray)
-        Log("\(operandArray.count) : \(self.allowedOperandsCountRange())")
+        Log("\(operandArray.count) : \(String(describing: self.allowedOperandsCountRange()))")
         guard let allowedRange = self.allowedOperandsCountRange(), allowedRange ~= operandArray.count else {
             Log("Operands Count Over Range")
             return nil
@@ -135,7 +132,7 @@ public enum Command: String, CommandProtocol {
         if self.isReply(), let _ = Command(rawValue: self.sendCommand) { Log()
             //Mark dequeue flag on it's status.
             let (_, _) = node.deQueueWithType(token: token, type: [.local, .delegate])
-            let (updatedJob, _) = node.setJobResult(token: token, type: [.local, .delegate], result: operands) // **job result is overwritten following code possibly.
+            let (_, _) = node.setJobResult(token: token, type: [.local, .delegate], result: operands) // **job result is overwritten following code possibly.
             
             /*
              Detect done ALL following(Chained) jobs.
@@ -176,7 +173,7 @@ public enum Command: String, CommandProtocol {
              1: date
              2: blockAsJsonString
              */
-            let type = operandArray[0]
+//            let type = operandArray[0]
             let date = operandArray[1]
             let blockAsJsonString = operandArray[2]  //context  x transactions as json string
             /*
@@ -237,7 +234,7 @@ public enum Command: String, CommandProtocol {
                  Detect Chainable to Legitimate Chain or Any Branch Chaines.
                  */
                 let (chainable, previousBlock, nextDifficulty, branchHashString, indexInBranchPoint, indexInBranchChain) = (node as! Node).book.chainable(previousBlockHash: previousBlockHash, signatureForBlock: signatureForBlockAsData, node: (node as! Node))
-                Log("\(chainable) block id: \(id) previousBlockHash: \(previousBlockHash) nextDifficulty: \(nextDifficulty) branchHashString: \(branchHashString) indexInBranchChain: \(indexInBranchChain) indexInBranchPoint: \(indexInBranchPoint)")
+                Log("\(chainable) block id: \(id) previousBlockHash: \(previousBlockHash) nextDifficulty: \(nextDifficulty) branchHashString: \(String(describing: branchHashString)) indexInBranchChain: \(String(describing: indexInBranchChain)) indexInBranchPoint: \(String(describing: indexInBranchPoint))")
                 switch chainable {
                 case .branchableBlock:
                     /*
@@ -348,7 +345,7 @@ public enum Command: String, CommandProtocol {
             let makerDhtAddressAsHexString = operandArray[1]   //"6f7739ca1a3b1a4c5d89c74895b04cf58c10c3fbd94e4a356d6145d8f73d55ca7b4cbe84bb6f286f48e093d037c2c23d45d7667260f72a1fe01302ac4c5414c9"
             let transactionCount = operandArray[2]  //"1"
 
-            guard let transactionCountAsInt = Int(transactionCount) else {
+            guard let _ = Int(transactionCount) else {
                 Log()
                 return nil
             }
@@ -417,8 +414,8 @@ public enum Command: String, CommandProtocol {
                  近隣nodeへ送信する
                  */
                 Log("Publish Block to known Nodes.")
-                Log((node as! Node).signer()?.privateKeyForSignature?.rawRepresentation.base64String)
-                Log((node as! Node).signer()?.privateKeyForSignature?.rawRepresentation.base64String)
+                Log((node as! Node).signer()?.privateKeyForSignature?.rawRepresentation.base64String as Any)
+                Log((node as! Node).signer()?.privateKeyForSignature?.rawRepresentation.base64String as Any)
                 block.send(node: node, signer: signer)
             }
             return nil
@@ -437,14 +434,14 @@ public enum Command: String, CommandProtocol {
              resultがあれば
              リソース取得完了となる
              */
-            let key = operandArray[0]
+//            let key = operandArray[0]
             let responsibleNodeAddress = operandArray[1]
             if responsibleNodeAddress != "" {
                 /*
                  Taker 取得完了
                  */
                 Log("Have Got Taker: \(responsibleNodeAddress)")
-            } else if let responsibleNode = Node(dhtAddressAsHexString: responsibleNodeAddress) {
+            } else if let _ = Node(dhtAddressAsHexString: responsibleNodeAddress) {
                 /*
                  ex.
                  ・Taker取得の流れ

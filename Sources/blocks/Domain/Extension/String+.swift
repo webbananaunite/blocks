@@ -13,7 +13,7 @@ public extension String {
         Log(self)
         do {
             if let jsonAsData = self.utf8DecodedData {
-                Log(jsonAsData.utf8String)
+                Log(jsonAsData.utf8String as Any)
                 if let jsonAsDictionary = try JSONSerialization.jsonObject(with: jsonAsData, options: .allowFragments) as? [String: String] {
                     Log(jsonAsDictionary)
                     return jsonAsDictionary

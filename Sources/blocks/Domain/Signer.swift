@@ -7,8 +7,6 @@
 //
 
 import Foundation
-//import CryptoKit
-//import Security
 import overlayNetwork
 #if os(macOS) || os(iOS)
 import CryptoKit
@@ -247,10 +245,10 @@ public extension SignerProtocol {
         }
         
         Log(self.makerDhtAddressAsHexString)
-        Log(self.privateKeyForSignature?.rawRepresentation)
-        Log(self.publicKeyForSignature?.rawRepresentation)
-        Log(self.privateKeyForEncryption?.rawRepresentation)
-        Log(self.publicKeyForEncryption?.rawRepresentation)
+        Log(self.privateKeyForSignature?.rawRepresentation as Any)
+        Log(self.publicKeyForSignature?.rawRepresentation as Any)
+        Log(self.privateKeyForEncryption?.rawRepresentation as Any)
+        Log(self.publicKeyForEncryption?.rawRepresentation as Any)
     }
     
     init(publicKeyAsData: PublicKey, makerDhtAddressAsHexString: OverlayNetworkAddressAsHexString, publicKeyForEncryptionAsData: PublicKeyForEncryption? = nil) {
@@ -503,7 +501,7 @@ public struct Signer: SignerProtocol {
             Log("Sign data. --Validation")
             Log("privateKey: \(privateKey.rawRepresentation.base64String)")
             Log("contentData(hashed): \(contentAsData.base64String)")
-            Log("publickey: \(self.publicKeyForSignature?.rawRepresentation.base64String)")
+            Log("publickey: \(String(describing: self.publicKeyForSignature?.rawRepresentation.base64String))")
             let signature = try privateKey.signature(for: contentAsData)
             Log("signature: \(signature.base64String)")
             Log("signed data: \(contentAsData.base64String)")

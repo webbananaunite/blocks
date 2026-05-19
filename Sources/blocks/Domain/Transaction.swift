@@ -10,7 +10,6 @@
  Transaction    トランザクション
  */
 import Foundation
-//import CryptoKit
 import overlayNetwork
 #if os(macOS) || os(iOS)
 import CryptoKit
@@ -215,18 +214,18 @@ public extension Transaction {
          known node:
          predecessor, successor, babysitter(arbitrary node)
          */
-        Log(self.signature?.toString)
-        Log(signer.base64EncodedPublicKeyForSignatureString)
+        Log(self.signature?.toString as Any)
+        Log(signer.base64EncodedPublicKeyForSignatureString as Any)
         let signatureString = self.signature?.toString
-        Log(signatureString)
+        Log(signatureString as Any)
         let base64 = signer.base64EncodedPublicKeyForSignatureString
-        Log(base64)
+        Log(base64 as Any)
         let transactionId = self.transactionId
-        Log(transactionId)
+        Log(transactionId as Any)
         let dateString = self.date?.utcTimeString
-        Log(dateString)
+        Log(dateString as Any)
         
-        guard let signatureString = self.signature?.toString, signer.base64EncodedPublicKeyForSignatureString != "", let transactionId = self.transactionId, let dateString = self.date?.utcTimeString else {
+        guard let _ = self.signature?.toString, signer.base64EncodedPublicKeyForSignatureString != "", let _ = self.transactionId, let _ = self.date?.utcTimeString else {
             Log("Void Signature cause Can NOT Publish Transaction.")
             return
         }
@@ -274,7 +273,7 @@ public extension Transaction {
             return false
         }
         Log("SIGN#++")
-        Log("raw data: \(self.claimObject.toJsonString(signer: self.signer, peerSigner: self.peerSigner))")
+        Log("raw data: \(String(describing: self.claimObject.toJsonString(signer: self.signer, peerSigner: self.peerSigner)))")
         Log("data: \(contentData.base64String)")
         Log("hashed data: \(contentHashedData.base64String)")
         Log("signature: \(signature.toString)")
@@ -291,8 +290,8 @@ public extension Transaction {
              Check Transactions Limited by Claim.
              */
             if self.type == .person {
-                Log(self.claim.rawValue)
-                if let claimObject = self.claimObject as? ClaimOnPerson.Object, let personTransaction = self as? ImplementedPerson {
+                Log(self.claim.rawValue as Any)
+                if let _ = self.claimObject as? ClaimOnPerson.Object, let personTransaction = self as? ImplementedPerson {
                     if personTransaction.duplicatedPerson(chainable: chainable, branchChainHash: branchChainHash, indexInBranchChain: indexInBranchChain) {
                         //Duplicated Person
                         Log("Duplicate Birth as same Person.")
@@ -367,11 +366,11 @@ public extension Transaction {
         Log()
         if let contentAsData = self.claimObject.toJsonString(signer: self.signer, peerSigner: self.peerSigner)?.utf8DecodedData, let contentHashedData = contentAsData.hashedData?.toData, let signature = try signer.sign(contentAsData: contentHashedData) {
             Log("SIGN#--")
-            Log("raw data\(self.claimObject.toJsonString(signer: self.signer, peerSigner: self.peerSigner))")
+            Log("raw data\(String(describing: self.claimObject.toJsonString(signer: self.signer, peerSigner: self.peerSigner)))")
             Log("data: \(contentAsData.base64String)")
             Log("hashed data: \(contentHashedData.base64String)")
             Log("signature: \(signature.toString)")
-            Log("publicKey: \(signer.publicKeyForSignature?.rawRepresentation.base64String)")
+            Log("publicKey: \(String(describing: signer.publicKeyForSignature?.rawRepresentation.base64String))")
             self.signature = signature
         }
     }
@@ -386,7 +385,7 @@ public extension Transaction {
         Log("Verify Transaction.")
         Log(data.base64String)
         Log(signature.toString)
-        Log(signer.publicKeyForSignature?.rawRepresentation.base64String)
+        Log(signer.publicKeyForSignature?.rawRepresentation.base64String as Any)
         let verifySucceeded = try signer.verify(data: data, signature: signature)
         Log("Verify Transaction? \(verifySucceeded)")
         return verifySucceeded
@@ -417,7 +416,7 @@ public extension Transaction {
             Log()
             do {
                 if let _ = signer.privateKeyForSignature {
-                    Log(signer.privateKeyForSignature?.rawRepresentation.base64String)
+                    Log(signer.privateKeyForSignature?.rawRepresentation.base64String as Any)
                     try sign(with: signer)
                 }
             } catch {

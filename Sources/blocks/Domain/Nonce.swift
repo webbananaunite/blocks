@@ -7,15 +7,12 @@
 //
 
 import Foundation
-//import Metal
 #if os(macOS) || os(iOS)
 import Metal
 #elseif canImport(Glibc)    ///Not Support Metal on Linux cause should Using OpenGL instead.
 import Glibc
-//import Metal
 #elseif canImport(Musl)     ///Not Support Metal on Linux cause should Using OpenGL instead.
 import Musl
-//import Metal
 #endif
 
 /*

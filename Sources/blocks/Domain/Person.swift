@@ -655,7 +655,7 @@ public struct ImplementedPerson: Person {
         
         let transactionAsDictionary = self.contentAsDictionary
         let destination = transactionAsDictionary["Destination"] ?? ""
-        Log("\(self.claim.rawValue) : \(claimOn?.rawValue)")
+        Log("\(String(describing: self.claim.rawValue)) : \(String(describing: claimOn?.rawValue))")
         guard let claimRawValue = self.claim.rawValue, claimRawValue != claimOn?.rawValue else {
             Log()
             return false
