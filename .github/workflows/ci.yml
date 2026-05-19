@@ -1,0 +1,44 @@
+name: Swift Package Cross-Platform CI (iOS-Logic & Linux)
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  test:
+    name: Test on ${{ matrix.platform }}
+    runs-on: ${{ matrix.os }}
+    
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          # Appleプラットフォーム（iOS/macOS共用ロジック）向けのビルド環境
+          - platform: Apple-Platform
+            os: macos-15
+            swift-version: '6.0'
+            
+          # Linux向けのビルド環境
+          - platform: Linux
+            os: ubuntu-latest
+            swift-version: '6.0'
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # macOS環境・Linux環境の双方で、指定したバージョンのSwiftをセットアップ
+      - name: Setup Swift
+        uses: swift-actions/setup-swift@v2
+        with:
+          swift-version: ${{ matrix.swift-version }}
+
+      # 依存関係（外部Packageなど）の解決
+      - name: Resolve dependencies
+        run: swift package resolve
+
+      # Package標準のコマンドでビルドとテストを実行
+      - name: Run Tests
+        run: swift test -v
