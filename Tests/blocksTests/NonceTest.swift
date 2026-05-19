@@ -69,6 +69,15 @@ final class NonceTest: XCTestCase {
         Log(verified)
         XCTAssertEqual(verified, true)
     }
+    
+    func testNonceBindsToProofOfWorkContent() throws {
+        let content = "block header A".utf8DecodedData!
+        let tamperedContent = "block header B".utf8DecodedData!
+        let nonce = Nonce(paddingZeroLength: 4, preBlockNonce: Block.genesis.nonce, proofOfWorkContent: content)
+        
+        XCTAssertTrue(nonce.verifyNonce(proofOfWorkContent: content))
+        XCTAssertFalse(nonce.verifyNonce(proofOfWorkContent: tamperedContent))
+    }
 
     func testPerformanceExample() throws {
         // This is an example of a performance test case.
