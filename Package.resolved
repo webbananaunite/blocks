@@ -1,6 +1,15 @@
 {
   "pins" : [
     {
+      "identity" : "overlaynetwork",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/webbananaunite/overlayNetwork",
+      "state" : {
+        "revision" : "95f03332470ee9908394ea8d06655a200d406be0",
+        "version" : "0.5.4"
+      }
+    },
+    {
       "identity" : "swift-crypto",
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/apple/swift-crypto.git",
