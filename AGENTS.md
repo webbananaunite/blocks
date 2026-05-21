@@ -72,6 +72,25 @@ ruby -e 'require "yaml"; YAML.load_file(".github/workflows/ci.yml"); puts "YAML 
 - 依存関係や toolchain のインストールは、CI の再現やユーザーの依頼に必要な場合に限る。
 - `../overlayNetwork` はこの package のローカル依存として扱う。CI では `blocks` と `overlayNetwork` を兄弟ディレクトリに checkout する。
 
+## Package.swift の依存関係ルール
+
+- 開発中は、隣接ディレクトリのソースを直接確認できるように `Package.swift` の `dependencies` ではローカル path 依存を使う。
+
+```swift
+.package(name: "overlayNetwork", path: "../overlayNetwork"),  //using local source code.
+```
+
+- pull request を作成または更新する前に、`overlayNetwork` のどの GitHub tag を使うかを必ずユーザーに確認する。
+- pull request 用の状態では、ユーザーが指定した tag を使って GitHub tag 依存へ切り替える。
+
+```swift
+.package(url: "https://github.com/webbananaunite/overlayNetwork", .upToNextMajor(from: "<user-confirmed-tag>")),   //using source code in github tag
+```
+
+- 例として現在想定されている tag は `0.5.3` だが、PR ごとに最新の意図をユーザーへ確認する。
+- GitHub tag 依存へ切り替える場合、その tag が GitHub に push 済みであり、PR で検証したい変更を含んでいることを確認する。tag に含まれないローカル変更は CI では検証されない。
+- SwiftPM の version requirement には SemVer として解釈できる tag を使う。`0.1` のような短い tag を使う必要がある場合は、SwiftPM が受け付けるか確認し、問題があれば `0.1.0` のような 3 要素の tag をユーザーに提案する。
+
 ## してはならない操作
 
 - ユーザーの明示的な許可なしに、以下を実行しない。
