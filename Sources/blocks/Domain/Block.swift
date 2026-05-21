@@ -156,7 +156,7 @@ public struct Block {
 
     private mutating func makeNonce() {
         Log()
-        self.nonce = Nonce(preBlockNonce: self.previousBlockNonce)
+        self.nonce = Nonce(preBlockNonce: self.previousBlockNonce, proofOfWorkContent: self.proofOfWorkHeaderContent)
     }
     
     /*
@@ -225,6 +225,8 @@ public struct Block {
         self.nextDifficulty = nextDifficulty
         self.publicKey = publicKey
         self.book = book
+        self.id = id ?? ""
+        self.nonce = Nonce(paddingZeroLength: paddingZeroLengthForNonce ?? previousBlock.nextDifficulty, nonceAsData: Data.DataNull)
 
         /*
          Book標準タイミング：
@@ -245,13 +247,10 @@ public struct Block {
              */
             Log(previousBlock.nextDifficulty)
             self.difficultyAsNonceLeadingZeroLength = previousBlock.nextDifficulty
-            self.nonce = Nonce(paddingZeroLength: previousBlock.nextDifficulty, preBlockNonce: previousBlockNonce)
+            self.nonce = Nonce(paddingZeroLength: previousBlock.nextDifficulty, preBlockNonce: previousBlockNonce, proofOfWorkContent: self.proofOfWorkHeaderContent)
         }
         self.nonceAsCompressedString = self.nonce.compressedHexaDecimalString
-        if let id = id {
-            self.id = id
-        } else {
-            self.id = ""
+        if id == nil {
             guard let id = setupId() else {
                 return nil
             }
@@ -749,12 +748,55 @@ public struct Block {
         return Data.DataNull
     }
     
+    var proofOfWorkHeaderContent: Data {
+        let reducedTransactions = transactions.reduce("") {
+            $0 + $1.useAsHash
+        }
+        let transactionsHash = reducedTransactions.hashedStringAsHex?.toString ?? ""
+        var jsonString = """
+{"date":"\(self.date.utcTimeString)",
+"maker":"\(self.maker)",
+"type":"\(self.type.rawValue)",
+"previousBlockHash":"\(self.previousBlockHash)",
+"previousBlockNonce":"\(self.previousBlockNonce.asHex)",
+"previousBlockDifficulty":"\(self.previousBlockDifficulty)",
+"nextDifficulty":"\(self.nextDifficulty)",
+"difficultyAsNonceLeadingZeroLength":"\(self.difficultyAsNonceLeadingZeroLength)",
+"publicKey":"\(self.publicKey.publicKeyToString)",
+"transactionsHash":"\(transactionsHash)"}
+"""
+        jsonString = jsonString.removeNewLineChars
+        return jsonString.utf8DecodedData ?? Data.DataNull
+    }
+    
+    mutating func refreshProofOfWorkNonce() {
+        Log()
+        self.signature = nil
+        self.nonce = Nonce(paddingZeroLength: self.difficultyAsNonceLeadingZeroLength, preBlockNonce: self.previousBlockNonce, proofOfWorkContent: self.proofOfWorkHeaderContent)
+        self.nonceAsCompressedString = self.nonce.compressedHexaDecimalString
+        self.id = ""
+        if let id = setupId() {
+            self.id = id
+        }
+    }
+    
+    func validateProofOfWork() -> Bool {
+        Log()
+        let verified = self.nonce.verifyNonce(proofOfWorkContent: self.proofOfWorkHeaderContent)
+        Log(verified)
+        return verified
+    }
+    
     /*
         Validate Block
         有効性チェックする
      */
     public func validate(signature: Signature, signer: Signer, chainable: Book.ChainableResult = .chainableBlock, branchChainHash: HashedString?, indexInBranchChain: Int?) -> Bool {
         Log()
+        guard self.validateProofOfWork() else {
+            Log("Invalid Proof Of Work.")
+            return false
+        }
         var validated = true
         transactions.forEach {
             Log()
