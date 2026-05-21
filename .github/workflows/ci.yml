@@ -23,7 +23,7 @@ jobs:
         uses: actions/checkout@v5
         with:
           repository: webbananaunite/overlayNetwork
-          ref: feature-new-work
+          ref: main
           path: overlayNetwork
 
       - name: Show Swift version
@@ -51,7 +51,7 @@ jobs:
         uses: actions/checkout@v5
         with:
           repository: webbananaunite/overlayNetwork
-          ref: feature-new-work
+          ref: main
           path: overlayNetwork
 
       - name: Restore Swiftly cache
