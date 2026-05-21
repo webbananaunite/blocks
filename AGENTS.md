@@ -65,12 +65,23 @@ CI 設定の構文確認:
 ruby -e 'require "yaml"; YAML.load_file(".github/workflows/ci.yml"); puts "YAML OK"'
 ```
 
+## ビルド出力ディレクトリのルール
+
+- ローカル検証では、スナップショット保存時にプロジェクト容量が増えないよう、可能な限りプロジェクト外の `~/appOutput/<repo名>` を `--build-path` に指定する。
+- Linux Static SDK のローカルクロスビルドでは、例として次のように実行する。
+
+```sh
+swift build -v --swift-sdk x86_64-swift-linux-musl --build-path ~/appOutput/blocks
+```
+
+- CI では個人環境の home directory や絶対パスに依存しない。GitHub Actions では引き続き `.build/linux-musl` を使う。
+
 ## 条件付きで実行してよい操作
 
 - ユーザーが明示的に依頼した場合のみ、ファイル編集、コミット、push、PR 作成を行う。
 - `gh pr create`、`gh pr comment`、`gh pr review` は、ユーザーの依頼または自動レビューの目的に必要な場合のみ使う。
 - 依存関係や toolchain のインストールは、CI の再現やユーザーの依頼に必要な場合に限る。
-- `../overlayNetwork` はこの package のローカル依存として扱う。CI では `blocks` と `overlayNetwork` を兄弟ディレクトリに checkout する。
+- `../overlayNetwork` は開発中のローカル依存として扱う。GitHub tag 依存へ切り替えた PR では、CI で `overlayNetwork` を兄弟ディレクトリに checkout しない。
 
 ## Package.swift の依存関係ルール
 
@@ -87,7 +98,7 @@ ruby -e 'require "yaml"; YAML.load_file(".github/workflows/ci.yml"); puts "YAML 
 .package(url: "https://github.com/webbananaunite/overlayNetwork", .upToNextMajor(from: "<user-confirmed-tag>")),   //using source code in github tag
 ```
 
-- 例として現在想定されている tag は `0.5.3` だが、PR ごとに最新の意図をユーザーへ確認する。
+- 例として現在想定されている tag は `0.5.4` だが、PR ごとに最新の意図をユーザーへ確認する。
 - GitHub tag 依存へ切り替える場合、その tag が GitHub に push 済みであり、PR で検証したい変更を含んでいることを確認する。tag に含まれないローカル変更は CI では検証されない。
 - SwiftPM の version requirement には SemVer として解釈できる tag を使う。`0.1` のような短い tag を使う必要がある場合は、SwiftPM が受け付けるか確認し、問題があれば `0.1.0` のような 3 要素の tag をユーザーに提案する。
 
