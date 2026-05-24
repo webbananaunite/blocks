@@ -163,7 +163,7 @@ public extension Transaction {
         get {
             if let signature = self.signature?.toString, let transactionId = self.transactionId, let dateString = self.date?.utcTimeString, let claimObject = self.claimObject.toJsonString(signer: self.signer, peerSigner: self.peerSigner), let claim = self.claim.rawValue {
                 var json = """
-{"transactionId":"\(transactionId)","date":"\(dateString)","type":"\(self.type.rawValue)","claim":"\(claim)","claimObject":\(claimObject),"signature":"\(signature)"}
+{"transactionId":"\(transactionId)","date":"\(dateString)","type":"\(self.type.rawValue)","claim":"\(claim)","claimObject":\(claimObject),"signature":"\(signature)","debitOnLeft":"\(self.debitOnLeft.canonicalDecimalString)","withdrawalDhtAddressOnLeft":"\(self.withdrawalDhtAddressOnLeft)","creditOnRight":"\(self.creditOnRight.canonicalDecimalString)","depositDhtAddressOnRight":"\(self.depositDhtAddressOnRight)"}
 """
                 Log(json)
                 //remove \n
@@ -179,7 +179,7 @@ public extension Transaction {
         get {
             if let signature = self.signature?.toString, let transactionId = self.transactionId, let dateString = self.date?.utcTimeString, let claimObject = self.claimObject.toJsonString(signer: self.signer, peerSigner: self.peerSigner), let claim = self.claim.rawValue {
                 var json = """
-{"transactionId":"\(transactionId)","date":"\(dateString)","type":"\(self.type.rawValue)","makerDhtAddressAsHexString":"\(self.makerDhtAddressAsHexString)","publicKey":"\(self.publicKey?.publicKeyToString ?? "")","claim":"\(claim)","claimObject":\(claimObject),"signature":"\(signature)"}
+{"transactionId":"\(transactionId)","date":"\(dateString)","type":"\(self.type.rawValue)","makerDhtAddressAsHexString":"\(self.makerDhtAddressAsHexString)","publicKey":"\(self.publicKey?.publicKeyToString ?? "")","claim":"\(claim)","claimObject":\(claimObject),"signature":"\(signature)","debitOnLeft":"\(self.debitOnLeft.canonicalDecimalString)","withdrawalDhtAddressOnLeft":"\(self.withdrawalDhtAddressOnLeft)","creditOnRight":"\(self.creditOnRight.canonicalDecimalString)","depositDhtAddressOnRight":"\(self.depositDhtAddressOnRight)"}
 """
                 Log(json)
                 //remove \n
@@ -305,7 +305,7 @@ public extension Transaction {
      Paper:
      5) ノードは、ブロック内のすべてのトランザクションが有効で、まだ使用されていない場合にのみブロックを受け入れます。
      */
-    func validate(chainable: Book.ChainableResult = .chainableBlock, branchChainHash: HashedString?, indexInBranchChain: Int?) -> Bool {
+    func validate(chainable: Book.ChainableResult = .chainableBlock, branchChainHash: HashedString?, indexInBranchChain: Int?, transactionsInSameBlock: [any Transaction] = []) -> Bool {
         Log()
         guard let contentData = self.canonicalSignaturePayloadData, let contentHashedData = contentData.hashedData?.toData, let signature = self.signature else {
             Log("transaction signature false")
@@ -387,7 +387,7 @@ public extension Transaction {
 
             //transactionの送金金額＋手数料　<= balance
             Log()
-            let balancedAmount = self.book.balance(dhtAddressAsHexString: self.makerDhtAddressAsHexString)
+            let balancedAmount = self.availableBalance(transactionsInSameBlock: transactionsInSameBlock)
             Log("\(self.debitOnLeft) + \(self.feeForBooker) <= \(balancedAmount)")
             guard self.debitOnLeft.asDecimal + self.feeForBooker.asDecimal <= balancedAmount.asDecimal else {
                 //Short of balances.
@@ -400,6 +400,27 @@ public extension Transaction {
         }
         Log("transaction validate true")
         return true
+    }
+
+    private func availableBalance(transactionsInSameBlock: [any Transaction]) -> BK {
+        let dhtAddress = self.makerDhtAddressAsHexString
+        let confirmedBalance = self.book.balance(dhtAddressAsHexString: dhtAddress).asDecimal
+        let sameBlockBalanceDelta = transactionsInSameBlock.reduce(Decimal.zero) { balanceDelta, transaction in
+            balanceDelta + transaction.balanceDelta(for: dhtAddress)
+        }
+        return confirmedBalance + sameBlockBalanceDelta
+    }
+
+    private func balanceDelta(for dhtAddress: OverlayNetworkAddressAsHexString) -> Decimal {
+        var balanceDelta = Decimal.zero
+        if self.withdrawalDhtAddressOnLeft.equal(dhtAddress) {
+            balanceDelta -= self.debitOnLeft.asDecimal
+            balanceDelta -= self.feeForBooker.asDecimal
+        }
+        if self.depositDhtAddressOnRight.equal(dhtAddress) {
+            balanceDelta += self.creditOnRight.asDecimal
+        }
+        return balanceDelta
     }
     
     /*
