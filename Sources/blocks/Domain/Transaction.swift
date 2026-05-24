@@ -376,6 +376,15 @@ public extension Transaction {
             /*
              Check Account Balance.
              */
+            if self.isCreditCreation {
+                guard self.isAllowedCreditCreationClaim else {
+                    Log("Invalid Claim for Credit Creation Transaction.")
+                    return false
+                }
+                Log("Credit Creation Transaction skips maker balance check.")
+                return true
+            }
+
             //transactionの送金金額＋手数料　<= balance
             Log()
             let balancedAmount = self.book.balance(dhtAddressAsHexString: self.makerDhtAddressAsHexString)
@@ -481,6 +490,21 @@ public extension Transaction {
         }
         
         return (false, nil)
+    }
+
+    var isCreditCreation: Bool {
+        self.withdrawalDhtAddressOnLeft.equal(Signer.moneySupplyUnMoverAccount)
+    }
+
+    var isAllowedCreditCreationClaim: Bool {
+        switch self.claim.rawValue {
+        case ClaimOnPay.bookerFee.rawValue,
+             ClaimOnPerson.demandBasicIncome.rawValue,
+             ClaimOnPerson.born.rawValue:
+            return true
+        default:
+            return false
+        }
     }
 
 //    static func == (lhs: any Transaction, rhs: any Transaction) -> Bool {

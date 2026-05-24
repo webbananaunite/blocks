@@ -396,9 +396,21 @@ public struct Block {
          Add Booker Fee Transaction into Block.
          */
         if self.transactions.count <= Block.maxTransactionsInABlock {
-            if let signer = node.signer(), let publicKeyAsBase64String = signer.publicKeyForSignature?.rawRepresentation.base64String, let publicKey = publicKeyAsBase64String as? PublicKey {
-                let claimObject = ClaimOnPay.Object(destination: "")
-                if let bookerFeeTransaction = TransactionType.pay.construct(claim: ClaimOnPay.bookerFee, claimObject: claimObject, makerDhtAddressAsHexString: self.maker, publicKey: publicKey, book: node.book, signer: signer, peerSigner: signer, creditOnRight: ClaimOnPay.bookerFee.fee),
+            if let signer = node.signer(), let publicKey = signer.publicKeyAsData {
+                let claimObject = ClaimOnPay.Object(destination: self.maker)
+                if let bookerFeeTransaction = TransactionType.pay.construct(
+                    claim: ClaimOnPay.bookerFee,
+                    claimObject: claimObject,
+                    makerDhtAddressAsHexString: self.maker,
+                    publicKey: publicKey,
+                    book: node.book,
+                    signer: signer,
+                    peerSigner: signer,
+                    debitOnLeft: ClaimOnPay.bookerFee.fee,
+                    creditOnRight: ClaimOnPay.bookerFee.fee,
+                    withdrawalDhtAddressOnLeft: Signer.moneySupplyUnMoverAccount,
+                    depositDhtAddressOnRight: self.maker.toString
+                ),
                     let bookerFeeTransactionSignature = bookerFeeTransaction.signature,
                     let transactionId = bookerFeeTransaction.transactionId,
                     let bookerFeeTransactionPublicKey = bookerFeeTransaction.publicKey,
