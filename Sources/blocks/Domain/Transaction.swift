@@ -201,6 +201,47 @@ public extension Transaction {
         return [:]
     }
 
+    internal var canonicalSignaturePayloadData: Data? {
+        guard let canonicalSignaturePayloadString else {
+            return nil
+        }
+        return canonicalSignaturePayloadString.utf8DecodedData
+    }
+
+    internal var canonicalSignaturePayloadString: String? {
+        let payload = canonicalSignaturePayload
+        guard !payload.isEmpty,
+              JSONSerialization.isValidJSONObject(payload),
+              let data = try? JSONSerialization.data(withJSONObject: payload, options: [.sortedKeys]) else {
+            return nil
+        }
+        return data.utf8String
+    }
+
+    private var canonicalSignaturePayload: [String: Any] {
+        get {
+            guard let dateString = self.date?.utcTimeString,
+                  let claim = self.claim.rawValue,
+                  let claimObject = self.claimObject.canonicalJSONObject(signer: self.signer, peerSigner: self.peerSigner) else {
+                return [:]
+            }
+            return [
+                "claim": claim,
+                "claimObject": claimObject,
+                "creditOnRight": self.creditOnRight.canonicalDecimalString,
+                "date": dateString,
+                "debitOnLeft": self.debitOnLeft.canonicalDecimalString,
+                "depositDhtAddressOnRight": self.depositDhtAddressOnRight.toString,
+                "feeForBooker": self.feeForBooker.canonicalDecimalString,
+                "makerDhtAddressAsHexString": self.makerDhtAddressAsHexString.toString,
+                "publicKey": self.publicKey?.publicKeyToString ?? "",
+                "transactionId": self.transactionId?.transactionIdentificationToString ?? "",
+                "type": self.type.rawValue,
+                "withdrawalDhtAddressOnLeft": self.withdrawalDhtAddressOnLeft.toString,
+            ]
+        }
+    }
+
     /*
      Publish     Transactionを発行する
      */
@@ -261,19 +302,17 @@ public extension Transaction {
          Book時には署名の確認のみ　←アカウントの保証はできる
          ３親等以内への（BirthからTaker、TakerからBirth）送金は無効とする
      
-     #あと content 以外も著名対象とする
-     
      Paper:
      5) ノードは、ブロック内のすべてのトランザクションが有効で、まだ使用されていない場合にのみブロックを受け入れます。
      */
     func validate(chainable: Book.ChainableResult = .chainableBlock, branchChainHash: HashedString?, indexInBranchChain: Int?) -> Bool {
         Log()
-        guard let contentData = self.claimObject.toJsonString(signer: self.signer, peerSigner: self.peerSigner)?.utf8DecodedData, let contentHashedData = contentData.hashedData?.toData, let signature = self.signature else {
+        guard let contentData = self.canonicalSignaturePayloadData, let contentHashedData = contentData.hashedData?.toData, let signature = self.signature else {
             Log("transaction signature false")
             return false
         }
         Log("SIGN#++")
-        Log("raw data: \(String(describing: self.claimObject.toJsonString(signer: self.signer, peerSigner: self.peerSigner)))")
+        Log("raw data: \(String(describing: self.canonicalSignaturePayloadString))")
         Log("data: \(contentData.base64String)")
         Log("hashed data: \(contentHashedData.base64String)")
         Log("signature: \(signature.toString)")
@@ -360,13 +399,12 @@ public extension Transaction {
          Base64
          Encrypt(ECDSA 256) makerの公開鍵で暗号
      
-     #あと content 以外も著名対象とする
      */
     mutating func sign(with signer: Signer) throws {
         Log()
-        if let contentAsData = self.claimObject.toJsonString(signer: self.signer, peerSigner: self.peerSigner)?.utf8DecodedData, let contentHashedData = contentAsData.hashedData?.toData, let signature = try signer.sign(contentAsData: contentHashedData) {
+        if let contentAsData = self.canonicalSignaturePayloadData, let contentHashedData = contentAsData.hashedData?.toData, let signature = try signer.sign(contentAsData: contentHashedData) {
             Log("SIGN#--")
-            Log("raw data\(String(describing: self.claimObject.toJsonString(signer: self.signer, peerSigner: self.peerSigner)))")
+            Log("raw data\(String(describing: self.canonicalSignaturePayloadString))")
             Log("data: \(contentAsData.base64String)")
             Log("hashed data: \(contentHashedData.base64String)")
             Log("signature: \(signature.toString)")
@@ -591,4 +629,20 @@ public protocol Transaction: Hashable {
     func isMatch<ArgumentA, ArgumentB>(type: TransactionType, claim: ArgumentA?, dhtAddressAsHexString: ArgumentB?) -> Bool
     mutating func send(node: Node, signer: Signer)
     func filter(dhtAddressAsHexString: OverlayNetworkAddressAsHexString) -> (Bool, TransactionMatchType?)
+}
+
+private extension ClaimObject {
+    func canonicalJSONObject(signer: Signer?, peerSigner: Signer?) -> Any? {
+        guard let jsonString = self.toJsonString(signer: signer, peerSigner: peerSigner),
+              let jsonData = jsonString.utf8DecodedData else {
+            return nil
+        }
+        return try? JSONSerialization.jsonObject(with: jsonData, options: [])
+    }
+}
+
+private extension BK {
+    var canonicalDecimalString: String {
+        NSDecimalNumber(decimal: self.asDecimal).stringValue
+    }
 }
