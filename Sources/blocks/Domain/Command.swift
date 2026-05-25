@@ -255,16 +255,6 @@ public enum Command: String, CommandProtocol {
                 /*
                  Received Block is Chainable to Legitimate / Branch Chains.
                  */
-                let preBlockNonce = previousBlock.nonce
-                let nonce = Nonce(paddingZeroLength: nextDifficulty, preBlockNonce: preBlockNonce, nonceAsData: nonceAsData)
-                /*
-                 Verify Nonce Value in Received Block.
-                 */
-                guard nonce.verifyNonce(preNonceAsData: preBlockNonce.asBinary) else {
-                    Log("Invalid Nonce.")
-                    return nil
-                }
-                Log("Valid Nonce.")
                 guard var block = Block(maker: makerDhtAddressAsHexString, signature: signatureForBlockAsData, previousBlock: previousBlock, nonceAsData: nonceAsData, publicKey: publicKeyForBlockAsData, date: date, paddingZeroLengthForNonce: nextDifficulty, book: (node as! Node).book, id: id, chainable: chainable, previousBlockHash: previousBlock.hashedString, indexInBranchPoint: indexInBranchPoint, branchHash: branchHashString, indexInBranchChain: indexInBranchChain) else {
                     Log("Can NOT Construct Block.")
                     return nil
@@ -394,6 +384,7 @@ public enum Command: String, CommandProtocol {
             } else {
                 return nil
             }
+            block.refreshProofOfWorkNonce()
 
             /*
              Transactionの最大数を決める（1 Block内）

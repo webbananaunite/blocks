@@ -156,7 +156,7 @@ public struct Block {
 
     private mutating func makeNonce() {
         Log()
-        self.nonce = Nonce(preBlockNonce: self.previousBlockNonce)
+        self.nonce = Nonce(preBlockNonce: self.previousBlockNonce, proofOfWorkContent: self.proofOfWorkHeaderContent)
     }
     
     /*
@@ -225,6 +225,8 @@ public struct Block {
         self.nextDifficulty = nextDifficulty
         self.publicKey = publicKey
         self.book = book
+        self.id = id ?? ""
+        self.nonce = Nonce(paddingZeroLength: paddingZeroLengthForNonce ?? previousBlock.nextDifficulty, nonceAsData: Data.DataNull)
 
         /*
          Book標準タイミング：
@@ -245,13 +247,10 @@ public struct Block {
              */
             Log(previousBlock.nextDifficulty)
             self.difficultyAsNonceLeadingZeroLength = previousBlock.nextDifficulty
-            self.nonce = Nonce(paddingZeroLength: previousBlock.nextDifficulty, preBlockNonce: previousBlockNonce)
+            self.nonce = Nonce(paddingZeroLength: previousBlock.nextDifficulty, preBlockNonce: previousBlockNonce, proofOfWorkContent: self.proofOfWorkHeaderContent)
         }
         self.nonceAsCompressedString = self.nonce.compressedHexaDecimalString
-        if let id = id {
-            self.id = id
-        } else {
-            self.id = ""
+        if id == nil {
             guard let id = setupId() else {
                 return nil
             }
@@ -384,7 +383,7 @@ public struct Block {
             Log()
             if let transactionSignature = $0.signature, let transactionId = $0.transactionId, let date = $0.date, let publicKey = $0.publicKey {
                 Log()
-                let validTransactionCauseAdded = addTransaction(claim: $0.claim, claimObject: $0.claimObject, type: $0.type.rawValue, makerDhtAddressAsHexString: $0.makerDhtAddressAsHexString, signature: transactionSignature, publicKeyAsData: publicKey, transactionId: transactionId, date: date, chainable: chainable, branchChainHash: branchChainHash, indexInBranchChain: indexInBranchChain)
+                let validTransactionCauseAdded = addTransaction(claim: $0.claim, claimObject: $0.claimObject, type: $0.type.rawValue, makerDhtAddressAsHexString: $0.makerDhtAddressAsHexString, signature: transactionSignature, publicKeyAsData: publicKey, transactionId: transactionId, date: date, chainable: chainable, branchChainHash: branchChainHash, indexInBranchChain: indexInBranchChain, debitOnLeft: $0.debitOnLeft, creditOnRight: $0.creditOnRight, withdrawalDhtAddressOnLeft: $0.withdrawalDhtAddressOnLeft.toString, depositDhtAddressOnRight: $0.depositDhtAddressOnRight.toString)
                 if addedAll && validTransactionCauseAdded {
                     addedAll = true
                 } else {
@@ -397,15 +396,27 @@ public struct Block {
          Add Booker Fee Transaction into Block.
          */
         if self.transactions.count <= Block.maxTransactionsInABlock {
-            if let signer = node.signer(), let publicKeyAsBase64String = signer.publicKeyForSignature?.rawRepresentation.base64String, let publicKey = publicKeyAsBase64String as? PublicKey {
-                let claimObject = ClaimOnPay.Object(destination: "")
-                if let bookerFeeTransaction = TransactionType.pay.construct(claim: ClaimOnPay.bookerFee, claimObject: claimObject, makerDhtAddressAsHexString: self.maker, publicKey: publicKey, book: node.book, signer: signer, peerSigner: signer, creditOnRight: ClaimOnPay.bookerFee.fee),
+            if let signer = node.signer(), let publicKey = signer.publicKeyAsData {
+                let claimObject = ClaimOnPay.Object(destination: self.maker)
+                if let bookerFeeTransaction = TransactionType.pay.construct(
+                    claim: ClaimOnPay.bookerFee,
+                    claimObject: claimObject,
+                    makerDhtAddressAsHexString: self.maker,
+                    publicKey: publicKey,
+                    book: node.book,
+                    signer: signer,
+                    peerSigner: signer,
+                    debitOnLeft: ClaimOnPay.bookerFee.fee,
+                    creditOnRight: ClaimOnPay.bookerFee.fee,
+                    withdrawalDhtAddressOnLeft: Signer.moneySupplyUnMoverAccount,
+                    depositDhtAddressOnRight: self.maker.toString
+                ),
                     let bookerFeeTransactionSignature = bookerFeeTransaction.signature,
                     let transactionId = bookerFeeTransaction.transactionId,
                     let bookerFeeTransactionPublicKey = bookerFeeTransaction.publicKey,
                     let date = bookerFeeTransaction.date {
                     let validTransactionCauseAdded = addTransaction(claim: bookerFeeTransaction.claim, claimObject: bookerFeeTransaction.claimObject, type: bookerFeeTransaction.type.rawValue, makerDhtAddressAsHexString: bookerFeeTransaction.makerDhtAddressAsHexString, signature: bookerFeeTransactionSignature,
-                                   publicKeyAsData: bookerFeeTransactionPublicKey, transactionId: transactionId, date: date, chainable: chainable, branchChainHash: branchChainHash, indexInBranchChain: indexInBranchChain)
+                                   publicKeyAsData: bookerFeeTransactionPublicKey, transactionId: transactionId, date: date, chainable: chainable, branchChainHash: branchChainHash, indexInBranchChain: indexInBranchChain, debitOnLeft: bookerFeeTransaction.debitOnLeft, creditOnRight: bookerFeeTransaction.creditOnRight, withdrawalDhtAddressOnLeft: bookerFeeTransaction.withdrawalDhtAddressOnLeft.toString, depositDhtAddressOnRight: bookerFeeTransaction.depositDhtAddressOnRight.toString)
                     if addedAll && validTransactionCauseAdded {
                         addedAll = true
                     } else {
@@ -423,7 +434,7 @@ public struct Block {
      &
      Add A Transaction to Block
      */
-    public mutating func addTransaction(claim: any Claim, claimObject: any ClaimObject, type: String, makerDhtAddressAsHexString: OverlayNetworkAddressAsHexString, signature: Signature, publicKeyAsData: PublicKey, transactionId: TransactionIdentification, date: Date, chainable: Book.ChainableResult, branchChainHash: HashedString?, indexInBranchChain: Int?) -> Bool {
+    public mutating func addTransaction(claim: any Claim, claimObject: any ClaimObject, type: String, makerDhtAddressAsHexString: OverlayNetworkAddressAsHexString, signature: Signature, publicKeyAsData: PublicKey, transactionId: TransactionIdentification, date: Date, chainable: Book.ChainableResult, branchChainHash: HashedString?, indexInBranchChain: Int?, debitOnLeft: BK = Decimal.zero, creditOnRight: BK = Decimal.zero, withdrawalDhtAddressOnLeft: String = "", depositDhtAddressOnRight: String = "") -> Bool {
         Log()
         if isThereSameTransaction(signature: signature) {
             Log("Duplicate Transaction in Block.")
@@ -445,9 +456,9 @@ public struct Block {
             
             if let type = TransactionType(rawValue: type) {
                 Log()
-                if let transaction = type.construct(claim: claim, claimObject: claimObject, makerDhtAddressAsHexString: makerDhtAddressAsHexString, publicKey: publicKeyAsData, signature: signatureData, book: self.book, signer: signer, transactionId: transactionId, date: date) {
+                if let transaction = type.construct(claim: claim, claimObject: claimObject, makerDhtAddressAsHexString: makerDhtAddressAsHexString, publicKey: publicKeyAsData, signature: signatureData, book: self.book, signer: signer, transactionId: transactionId, date: date, debitOnLeft: debitOnLeft, creditOnRight: creditOnRight, withdrawalDhtAddressOnLeft: withdrawalDhtAddressOnLeft, depositDhtAddressOnRight: depositDhtAddressOnRight) {
                     Log(transaction.jsonString)
-                    if transaction.validate(chainable: chainable, branchChainHash: branchChainHash, indexInBranchChain: indexInBranchChain) {
+                    if transaction.validate(chainable: chainable, branchChainHash: branchChainHash, indexInBranchChain: indexInBranchChain, transactionsInSameBlock: self.transactions) {
                         Log("Valid Transaction Cause Add to Block. \(String(describing: transaction.transactionId))")
                         self.transactions += [transaction]
                         return true
@@ -749,17 +760,62 @@ public struct Block {
         return Data.DataNull
     }
     
+    var proofOfWorkHeaderContent: Data {
+        let reducedTransactions = transactions.reduce("") {
+            $0 + $1.useAsHash
+        }
+        let transactionsHash = reducedTransactions.hashedStringAsHex?.toString ?? ""
+        var jsonString = """
+{"date":"\(self.date.utcTimeString)",
+"maker":"\(self.maker)",
+"type":"\(self.type.rawValue)",
+"previousBlockHash":"\(self.previousBlockHash)",
+"previousBlockNonce":"\(self.previousBlockNonce.asHex)",
+"previousBlockDifficulty":"\(self.previousBlockDifficulty)",
+"nextDifficulty":"\(self.nextDifficulty)",
+"difficultyAsNonceLeadingZeroLength":"\(self.difficultyAsNonceLeadingZeroLength)",
+"publicKey":"\(self.publicKey.publicKeyToString)",
+"transactionsHash":"\(transactionsHash)"}
+"""
+        jsonString = jsonString.removeNewLineChars
+        return jsonString.utf8DecodedData ?? Data.DataNull
+    }
+    
+    mutating func refreshProofOfWorkNonce() {
+        Log()
+        self.signature = nil
+        self.nonce = Nonce(paddingZeroLength: self.difficultyAsNonceLeadingZeroLength, preBlockNonce: self.previousBlockNonce, proofOfWorkContent: self.proofOfWorkHeaderContent)
+        self.nonceAsCompressedString = self.nonce.compressedHexaDecimalString
+        self.id = ""
+        if let id = setupId() {
+            self.id = id
+        }
+    }
+    
+    func validateProofOfWork() -> Bool {
+        Log()
+        let verified = self.nonce.verifyNonce(proofOfWorkContent: self.proofOfWorkHeaderContent)
+        Log(verified)
+        return verified
+    }
+    
     /*
         Validate Block
         有効性チェックする
      */
     public func validate(signature: Signature, signer: Signer, chainable: Book.ChainableResult = .chainableBlock, branchChainHash: HashedString?, indexInBranchChain: Int?) -> Bool {
         Log()
+        guard self.validateProofOfWork() else {
+            Log("Invalid Proof Of Work.")
+            return false
+        }
         var validated = true
+        var validatedTransactions = [any Transaction]()
         transactions.forEach {
             Log()
-            if $0.validate(chainable: chainable, branchChainHash: branchChainHash, indexInBranchChain: indexInBranchChain) {
+            if $0.validate(chainable: chainable, branchChainHash: branchChainHash, indexInBranchChain: indexInBranchChain, transactionsInSameBlock: validatedTransactions) {
                 Log()
+                validatedTransactions += [$0]
             } else {
                 Log()
                 validated = false

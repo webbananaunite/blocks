@@ -31,7 +31,7 @@ public struct Book {
         Value: [First Candidate][Block, ...], [Secondary Candidate][Block, ...]
 
      Swap Rule:
-     Grow {4} Blocks in any Candidate Chain, then Swap Candidate Chain to Legitimate Chain at Branch started Point.
+     Prefer the chain with the greatest cumulative proof-of-work from the branch point.
      
      Restrict:
      None Branch in Candidate Chain.
@@ -40,8 +40,6 @@ public struct Book {
      */
     public var candidates = [String: [[Block]]]()
     public let candidateChainsMaximumForEachBranch = 10
-    public let chainSwapRuledBlockCount = 4
-    
     /*
      blocks
          blocks[arrayLength - 3]: before last 2 block
@@ -199,9 +197,6 @@ public struct Book {
                 switch chainable {
                 case .branchableBlock:
                     Log("The Block Chained as Candidate Branch Chain.")
-                    /*
-                     if branch length (other word, contained Blocks Count) over {chainSwapRuledBlockCount}, Swap the Branch to Legitimate Chain at Branch Point.
-                     */
                     guard let branchHashString = branchHashString, let indexInBranchPoint = indexInBranchPoint, let indexInBranchChain = indexInBranchChain else {
                         return
                     }
@@ -223,17 +218,15 @@ public struct Book {
                         self.candidates[branchHashedString]?[indexInBranchPoint] += [block]
                     }
 //                        }
-                    if let branchChainLength = self.candidates[branchHashedString]?[indexInBranchPoint].count, branchChainLength >= chainSwapRuledBlockCount {
-                        Log("Should Swap Branch to Legitimate Chain's Branch Point. \(branchHashedString)")
+                    if let branchPointIndex = self.findBranchPointInLegitimateChain(branchHashedString: branchHashedString),
+                       let candidateBranch = self.candidates[branchHashedString]?[indexInBranchPoint],
+                       self.shouldReplaceLegitimateChain(branchPointIndex: branchPointIndex, candidateBranch: candidateBranch) {
+                        Log("Should Swap Branch to Legitimate Chain's Branch Point by cumulative work. \(branchHashedString)")
                         /*
                          Swap Branch to Legitimate Chain's Branch Point.
                          */
-                        if let branchPointIndex = self.findBranchPointInLegitimateChain(branchHashedString: branchHashedString) {
-                            Log("Found Branched Point in Legitimate Chain.")
-                            self.blocks = self.blocks[0...branchPointIndex] + (self.candidates[branchHashedString]?[indexInBranchPoint] ?? [])
-                        } else {
-                            Log("Not Found Branched Point in Legitimate Chain.")
-                        }
+                        Log("Found Branched Point in Legitimate Chain.")
+                        self.blocks = self.blocks[0...branchPointIndex] + candidateBranch
                         /*
                          Clear Branches named {branchHashedString}.
                          */
@@ -286,54 +279,36 @@ public struct Book {
     public mutating func reduceBranch() {
         Log()
         /*
-         Block is Confirmed As There following 4 Blocks, Remove All Branch Chains Rooted Block Before Confirmed Block.
-
-         Block Array in Legitimate Chain
-         blocks[0]　←Confirmed
-            [1]
-            [2]
-            [3]
-            [4]
-         candidates[{Branch Point 0}][0]
-            [{Branch Point 0}][0][1]
-            [{Branch Point 2}][0]
-         
-         ↓
-         Add 1 Block in Legitimate Chain
-         blocks[0]　←Confirmed
-            [1]　←Confirmed
-            [2]
-            [3]
-            [4]
-            [5]
-         candidates[{Branch Point 0}][0]
-            [{Branch Point 0}][0][1]
-            [{Branch Point 2}][0]
-         
-         ↓
-         Reduced Branches
-         blocks[0]　←Confirmed
-            [1]　←Confirmed
-            [2]
-            [3]
-            [4]
-            [5]
-         candidates[{Branch Point 2}][0]
+         Candidate branches are not pruned by a fixed confirmation depth.
+         They remain available until cumulative proof-of-work comparison chooses
+         a winning chain or the candidate is otherwise rejected.
          */
         Log(self.blocks.endIndex)
-        let blockBeforeConfirmedBlockIndex = self.blocks.endIndex - (self.chainSwapRuledBlockCount + 2)
-        Log(blockBeforeConfirmedBlockIndex)
-        if blockBeforeConfirmedBlockIndex >= 0 {
-            Log()
-            let block = self.blocks[blockBeforeConfirmedBlockIndex]
-            if let blockHashedString = block.hashedString?.toString, let _ = self.candidates[blockHashedString] {
-                /*
-                 Delete Same Start Point Branch Chains, Entire Root.
-                 */
-                Log(blockHashedString)
-                self.candidates[blockHashedString] = nil
-            }
+    }
+
+    func proofOfWork(for block: Block) -> Double {
+        pow(2.0, Double(block.difficultyAsNonceLeadingZeroLength.toInt))
+    }
+
+    func cumulativeProofOfWork(for blocks: [Block]) -> Double {
+        blocks.reduce(0.0) {
+            $0 + proofOfWork(for: $1)
         }
+    }
+
+    func legitimateChainBlocks(after branchPointIndex: Int) -> [Block] {
+        let replacementStartIndex = branchPointIndex + 1
+        guard replacementStartIndex < blocks.endIndex else {
+            return []
+        }
+        return Array(blocks[replacementStartIndex..<blocks.endIndex])
+    }
+
+    func shouldReplaceLegitimateChain(branchPointIndex: Int, candidateBranch: [Block]) -> Bool {
+        let candidateWork = cumulativeProofOfWork(for: candidateBranch)
+        let legitimateWork = cumulativeProofOfWork(for: legitimateChainBlocks(after: branchPointIndex))
+        Log("Candidate cumulative work: \(candidateWork), legitimate cumulative work: \(legitimateWork)")
+        return candidateWork > legitimateWork
     }
     
     /*
@@ -382,21 +357,18 @@ public struct Book {
             let branchHashString = branchs.element.key
             let branchChains = branchs.element.value   //branchChains: [[Block], ...MAX 10]
             for branchChain in branchChains.enumerated() {
-                //branchChain: [Block, ...MAX 4]
-                if branchChain.element.endIndex < chainSwapRuledBlockCount {
-                    //Found available Branch chain
+                //branchChain: [Block, ...]
+                Log()
+                if let lastBlock = branchChain.element.last, let lastBlockHash = lastBlock.hashedString, lastBlockHash.equal(previousBlockHash) {
                     Log()
-                    if let lastBlock = branchChain.element.last, let lastBlockHash = lastBlock.hashedString, lastBlockHash.equal(previousBlockHash) {
-                        Log()
-                        candidateBranchHashString = branchHashString
-                        nextDifficulty = lastBlock.nextDifficulty
-                        previousBlock = lastBlock
-                        indexInBranch = branchChain.element.endIndex
-                        indexInChainPoint = branchChain.offset
-                        Log("Found Branch and Index. \(candidateBranchHashString) - \(indexInBranch)")
-                        Log("\(candidateBranchHashString) - \(indexInChainPoint) - \(indexInBranch) - \(nextDifficulty) - \(String(describing: previousBlock.content.utf8String))")
-                        return (candidateBranchHashString, indexInChainPoint, indexInBranch, nextDifficulty, previousBlock)
-                    }
+                    candidateBranchHashString = branchHashString
+                    nextDifficulty = lastBlock.nextDifficulty
+                    previousBlock = lastBlock
+                    indexInBranch = branchChain.element.endIndex
+                    indexInChainPoint = branchChain.offset
+                    Log("Found Branch and Index. \(candidateBranchHashString) - \(indexInBranch)")
+                    Log("\(candidateBranchHashString) - \(indexInChainPoint) - \(indexInBranch) - \(nextDifficulty) - \(String(describing: previousBlock.content.utf8String))")
+                    return (candidateBranchHashString, indexInChainPoint, indexInBranch, nextDifficulty, previousBlock)
                 }
             }
         }
@@ -420,15 +392,11 @@ public struct Book {
     }
     
     public func findBranchPointInLegitimateChain(branchHashedString: HashedString) -> Int? {
-        for block in self.blocks[(self.blocks.endIndex - self.chainSwapRuledBlockCount < 0 ? 0 : self.blocks.endIndex - self.chainSwapRuledBlockCount)...].enumerated() {
-            Log(block.offset)
-            if let blockHashedString = block.element.hashedString, blockHashedString.equal(branchHashedString) {
-                Log("Found Branched Point. \(block.offset)")
-                return block.offset
-            }
-            if block.offset > self.chainSwapRuledBlockCount {
-                Log()
-                break
+        for index in self.blocks.indices.reversed() {
+            Log(index)
+            if let blockHashedString = self.blocks[index].hashedString, blockHashedString.equal(branchHashedString) {
+                Log("Found Branched Point. \(index)")
+                return index
             }
         }
         Log()
