@@ -67,14 +67,14 @@ public class Nonce {
         self.asBinary = nonceAsData
     }
     
-    public init(paddingZeroLength: Difficulty = Nonce.defaultZeroLength, preBlockNonce: Nonce, nonceAsData: Data? = nil) {
+    public init(paddingZeroLength: Difficulty = Nonce.defaultZeroLength, preBlockNonce: Nonce, proofOfWorkContent: Data? = nil, nonceAsData: Data? = nil) {
         Log()
         self.leadingZeroLength = paddingZeroLength
         self.difficultyAsUseExclusiveOR = makeDifficultyAsUseExclusiveOR()
         if let nonceAsData = nonceAsData {
             self.asBinary = nonceAsData
         } else {
-            self.asBinary = makeNonce(preBlockNonce: preBlockNonce)
+            self.asBinary = makeNonce(proofOfWorkContent: proofOfWorkContent ?? preBlockNonce.asBinary)
         }
     }
 
@@ -114,8 +114,12 @@ public class Nonce {
     }
     
     public func verifyNonce(preNonceAsData: Data) -> Bool {
+        return verifyNonce(proofOfWorkContent: preNonceAsData)
+    }
+    
+    public func verifyNonce(proofOfWorkContent: Data) -> Bool {
         Dump(self.asBinary)
-        let hashedComputedData = (preNonceAsData + self.asBinary).hash
+        let hashedComputedData = (proofOfWorkContent + self.asBinary).hash
         Dump(hashedComputedData)
         Dump(difficultyAsUseExclusiveOR)
         let foundNonce = hashedComputedData ^ difficultyAsUseExclusiveOR
@@ -130,7 +134,7 @@ public class Nonce {
      GPU Powered Calculate Nonce.
      */
     let gpuParallelProcedureLength = 1048576
-    private func makeNonce(preBlockNonce: Nonce) -> Data {
+    private func makeNonce(proofOfWorkContent: Data) -> Data {
         Log()
         var candidateNonceValue: Data = Data.DataNull
         var addingExponent: UInt = 0
@@ -145,14 +149,14 @@ public class Nonce {
         }
         
         initMetal()
-        let matchedNonce = startGPU(preBlockNonce: preBlockNonce)
+        let matchedNonce = startGPU(proofOfWorkContent: proofOfWorkContent)
         return matchedNonce
     }
     #else
     /*
      CPU Powered Calculate Nonce
      */
-    private func makeNonce(preBlockNonce: Nonce) -> Data {
+    private func makeNonce(proofOfWorkContent: Data) -> Data {
         Log("###Started Make Nonce Approach.")
         var candidateNonceValue: Data = Data.DataNull
         var addingExponent: UInt = 0
@@ -160,7 +164,7 @@ public class Nonce {
         var foundNonce: Bool = false
         for a: Int in -1..<nonceMaxBitLength {
             fixExponents = a >= 0 ? UInt(a) : nil
-            makeNonce(addingExponent: &addingExponent, candidateNonceValue: &candidateNonceValue, fixExponent: &fixExponents, foundNonce: &foundNonce, preNonceAsData: preBlockNonce.asBinary)
+            makeNonce(addingExponent: &addingExponent, candidateNonceValue: &candidateNonceValue, fixExponent: &fixExponents, foundNonce: &foundNonce, proofOfWorkContent: proofOfWorkContent)
             Dump(candidateNonceValue)
             if foundNonce {
                 break
@@ -244,7 +248,7 @@ public class Nonce {
      GPUへ渡す引数をセットして 実行 waitUntilCompleted する
      （GPU引数：並列実行数 GPU Parallel Procedure の長さ分）
      */
-    private func startGPU(preBlockNonce: Nonce) -> Data {
+    private func startGPU(proofOfWorkContent: Data) -> Data {
         /*
          Define Shader Parameters
     
@@ -317,7 +321,7 @@ public class Nonce {
 
         let fixExponentsBuffer = device.makeBuffer(bytes: fixExponents, length: MemoryLayout<UInt>.stride * bufferLength, options: [])//: [Int]
         let foundNonceBuffer = device.makeBuffer(bytes: foundNonce, length: MemoryLayout<Bool>.stride * bufferLength, options: [])//: Bool
-        let preNonceAsDataBuffer = device.makeBuffer(bytes: preBlockNonce.asBinary.toUint8Array, length: MemoryLayout<UInt8>.stride * preBlockNonce.asBinary.toUint8Array.count, options: [])//:
+        let preNonceAsDataBuffer = device.makeBuffer(bytes: proofOfWorkContent.toUint8Array, length: MemoryLayout<UInt8>.stride * proofOfWorkContent.toUint8Array.count, options: [])//:
 
         //MTLCommandBuffer生成
         /*
@@ -430,13 +434,13 @@ public class Nonce {
      
      Should be #rewrite Metal code as async and GPU calculation for calculate faster.
      */
-    private func makeNonce(addingExponent: inout UInt, candidateNonceValue: inout Data, fixExponent: inout UInt?, foundNonce: inout Bool, preNonceAsData: Data) {
+    private func makeNonce(addingExponent: inout UInt, candidateNonceValue: inout Data, fixExponent: inout UInt?, foundNonce: inout Bool, proofOfWorkContent: Data) {
 //        Log("\(String(describing: fixExponent)) 候補目")
 //        Dump(candidateNonceValue)
 //        Log("+ 2^\(addingExponent)")
         let addedValue = candidateNonceValue.add(exponent: addingExponent)  //Nonce value is as Little Endian
 //        Dump(addedValue)
-        let hashedComputedData = (preNonceAsData + addedValue).hash
+        let hashedComputedData = (proofOfWorkContent + addedValue).hash
 
 //        Log("Hashed.")
 //        Dump(hashedComputedData)  //7b54b668 36c1fbdd 13d2441d 9e1434dc 62ca677f b68f5fe6 6a464baa decdbd00 576f8d6b 5ac3bcc8 0844b7d5 0b1cc660 3444bbe7 cfcf8fc0 aa1ee3c6 36d9e339
@@ -453,7 +457,7 @@ public class Nonce {
             if addingExponent < Nonce.hashedBits {
                 addingExponent += 1
 //                Log("次の桁へ + 2^\(addingExponent)")
-                makeNonce(addingExponent: &addingExponent, candidateNonceValue: &candidateNonceValue, fixExponent: &fixExponent, foundNonce: &foundNonce, preNonceAsData: preNonceAsData)
+                makeNonce(addingExponent: &addingExponent, candidateNonceValue: &candidateNonceValue, fixExponent: &fixExponent, foundNonce: &foundNonce, proofOfWorkContent: proofOfWorkContent)
             } else {
                 /*
                  move to 'for in' loop

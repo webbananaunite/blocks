@@ -105,3 +105,13 @@ fastlane/test_output
 # https://github.com/johnno1962/injectionforxcode
 
 iOSInjectionProject/
+
+# AI Guardrails
+AGENTS.md
+CONTRIBUTING.md
+system_prompt.txt
+.cursorrules
+CLAUDE.md
+instructions.md
+.env
+rules.yaml

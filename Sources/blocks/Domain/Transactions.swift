@@ -87,10 +87,41 @@ public struct Transactions {
                 Log()
                 if let claimObject = claimObject {
                     Log()
-                    return typeAsTransactionType.construct(claim: claim, claimObject: claimObject, makerDhtAddressAsHexString: signer.makerDhtAddressAsHexString, publicKey: signer.publicKeyAsData, signature: signature, book: self.book, signer: signer, transactionId: transactionId, date: dateString.date)
+                    return typeAsTransactionType.construct(
+                        claim: claim,
+                        claimObject: claimObject,
+                        makerDhtAddressAsHexString: signer.makerDhtAddressAsHexString,
+                        publicKey: signer.publicKeyAsData,
+                        signature: signature,
+                        book: self.book,
+                        signer: signer,
+                        transactionId: transactionId,
+                        date: dateString.date,
+                        debitOnLeft: decimalValue(for: "debitOnLeft", in: dictionary),
+                        creditOnRight: decimalValue(for: "creditOnRight", in: dictionary),
+                        withdrawalDhtAddressOnLeft: stringValue(for: "withdrawalDhtAddressOnLeft", in: dictionary),
+                        depositDhtAddressOnRight: stringValue(for: "depositDhtAddressOnRight", in: dictionary)
+                    )
                 }
             }
             return nil
+        }
+
+        private func decimalValue(for key: String, in dictionary: [String: Any]) -> Decimal {
+            if let decimal = dictionary[key] as? Decimal {
+                return decimal
+            }
+            if let number = dictionary[key] as? NSNumber {
+                return number.decimalValue
+            }
+            if let string = dictionary[key] as? String, let decimal = Decimal(string: string) {
+                return decimal
+            }
+            return Decimal.zero
+        }
+
+        private func stringValue(for key: String, in dictionary: [String: Any]) -> String {
+            dictionary[key] as? String ?? ""
         }
 
         public var stringToTransactions: [any Transaction]? {

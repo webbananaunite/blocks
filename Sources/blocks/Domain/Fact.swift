@@ -62,7 +62,10 @@ public enum ClaimOnFact: String, Claim {
     }
 
     public func object(content: String) -> ClaimObject? {
-        return nil
+        guard let fields = ClaimObjectContent.commonFields(from: content) else {
+            return nil
+        }
+        return Object(destination: fields.destination, publicKeyForEncryption: fields.publicKeyForEncryption, combinedSealedBox: fields.combinedSealedBox, description: fields.description, attachedFileType: fields.attachedFileType)
     }
 
     public typealias ClaimType = ClaimOnFact

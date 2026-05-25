@@ -163,7 +163,7 @@ public extension Transaction {
         get {
             if let signature = self.signature?.toString, let transactionId = self.transactionId, let dateString = self.date?.utcTimeString, let claimObject = self.claimObject.toJsonString(signer: self.signer, peerSigner: self.peerSigner), let claim = self.claim.rawValue {
                 var json = """
-{"transactionId":"\(transactionId)","date":"\(dateString)","type":"\(self.type.rawValue)","claim":"\(claim)","claimObject":\(claimObject),"signature":"\(signature)"}
+{"transactionId":"\(transactionId)","date":"\(dateString)","type":"\(self.type.rawValue)","claim":"\(claim)","claimObject":\(claimObject),"signature":"\(signature)","debitOnLeft":"\(self.debitOnLeft.canonicalDecimalString)","withdrawalDhtAddressOnLeft":"\(self.withdrawalDhtAddressOnLeft)","creditOnRight":"\(self.creditOnRight.canonicalDecimalString)","depositDhtAddressOnRight":"\(self.depositDhtAddressOnRight)"}
 """
                 Log(json)
                 //remove \n
@@ -179,7 +179,7 @@ public extension Transaction {
         get {
             if let signature = self.signature?.toString, let transactionId = self.transactionId, let dateString = self.date?.utcTimeString, let claimObject = self.claimObject.toJsonString(signer: self.signer, peerSigner: self.peerSigner), let claim = self.claim.rawValue {
                 var json = """
-{"transactionId":"\(transactionId)","date":"\(dateString)","type":"\(self.type.rawValue)","makerDhtAddressAsHexString":"\(self.makerDhtAddressAsHexString)","publicKey":"\(self.publicKey?.publicKeyToString ?? "")","claim":"\(claim)","claimObject":\(claimObject),"signature":"\(signature)"}
+{"transactionId":"\(transactionId)","date":"\(dateString)","type":"\(self.type.rawValue)","makerDhtAddressAsHexString":"\(self.makerDhtAddressAsHexString)","publicKey":"\(self.publicKey?.publicKeyToString ?? "")","claim":"\(claim)","claimObject":\(claimObject),"signature":"\(signature)","debitOnLeft":"\(self.debitOnLeft.canonicalDecimalString)","withdrawalDhtAddressOnLeft":"\(self.withdrawalDhtAddressOnLeft)","creditOnRight":"\(self.creditOnRight.canonicalDecimalString)","depositDhtAddressOnRight":"\(self.depositDhtAddressOnRight)"}
 """
                 Log(json)
                 //remove \n
@@ -199,6 +199,47 @@ public extension Transaction {
             }
         }
         return [:]
+    }
+
+    internal var canonicalSignaturePayloadData: Data? {
+        guard let canonicalSignaturePayloadString else {
+            return nil
+        }
+        return canonicalSignaturePayloadString.utf8DecodedData
+    }
+
+    internal var canonicalSignaturePayloadString: String? {
+        let payload = canonicalSignaturePayload
+        guard !payload.isEmpty,
+              JSONSerialization.isValidJSONObject(payload),
+              let data = try? JSONSerialization.data(withJSONObject: payload, options: [.sortedKeys]) else {
+            return nil
+        }
+        return data.utf8String
+    }
+
+    private var canonicalSignaturePayload: [String: Any] {
+        get {
+            guard let dateString = self.date?.utcTimeString,
+                  let claim = self.claim.rawValue,
+                  let claimObject = self.claimObject.canonicalJSONObject(signer: self.signer, peerSigner: self.peerSigner) else {
+                return [:]
+            }
+            return [
+                "claim": claim,
+                "claimObject": claimObject,
+                "creditOnRight": self.creditOnRight.canonicalDecimalString,
+                "date": dateString,
+                "debitOnLeft": self.debitOnLeft.canonicalDecimalString,
+                "depositDhtAddressOnRight": self.depositDhtAddressOnRight.toString,
+                "feeForBooker": self.feeForBooker.canonicalDecimalString,
+                "makerDhtAddressAsHexString": self.makerDhtAddressAsHexString.toString,
+                "publicKey": self.publicKey?.publicKeyToString ?? "",
+                "transactionId": self.transactionId?.transactionIdentificationToString ?? "",
+                "type": self.type.rawValue,
+                "withdrawalDhtAddressOnLeft": self.withdrawalDhtAddressOnLeft.toString,
+            ]
+        }
     }
 
     /*
@@ -261,19 +302,17 @@ public extension Transaction {
          Book時には署名の確認のみ　←アカウントの保証はできる
          ３親等以内への（BirthからTaker、TakerからBirth）送金は無効とする
      
-     #あと content 以外も著名対象とする
-     
      Paper:
      5) ノードは、ブロック内のすべてのトランザクションが有効で、まだ使用されていない場合にのみブロックを受け入れます。
      */
-    func validate(chainable: Book.ChainableResult = .chainableBlock, branchChainHash: HashedString?, indexInBranchChain: Int?) -> Bool {
+    func validate(chainable: Book.ChainableResult = .chainableBlock, branchChainHash: HashedString?, indexInBranchChain: Int?, transactionsInSameBlock: [any Transaction] = []) -> Bool {
         Log()
-        guard let contentData = self.claimObject.toJsonString(signer: self.signer, peerSigner: self.peerSigner)?.utf8DecodedData, let contentHashedData = contentData.hashedData?.toData, let signature = self.signature else {
+        guard let contentData = self.canonicalSignaturePayloadData, let contentHashedData = contentData.hashedData?.toData, let signature = self.signature else {
             Log("transaction signature false")
             return false
         }
         Log("SIGN#++")
-        Log("raw data: \(String(describing: self.claimObject.toJsonString(signer: self.signer, peerSigner: self.peerSigner)))")
+        Log("raw data: \(String(describing: self.canonicalSignaturePayloadString))")
         Log("data: \(contentData.base64String)")
         Log("hashed data: \(contentHashedData.base64String)")
         Log("signature: \(signature.toString)")
@@ -337,9 +376,18 @@ public extension Transaction {
             /*
              Check Account Balance.
              */
+            if self.isCreditCreation {
+                guard self.isAllowedCreditCreationClaim else {
+                    Log("Invalid Claim for Credit Creation Transaction.")
+                    return false
+                }
+                Log("Credit Creation Transaction skips maker balance check.")
+                return true
+            }
+
             //transactionの送金金額＋手数料　<= balance
             Log()
-            let balancedAmount = self.book.balance(dhtAddressAsHexString: self.makerDhtAddressAsHexString)
+            let balancedAmount = self.availableBalance(transactionsInSameBlock: transactionsInSameBlock)
             Log("\(self.debitOnLeft) + \(self.feeForBooker) <= \(balancedAmount)")
             guard self.debitOnLeft.asDecimal + self.feeForBooker.asDecimal <= balancedAmount.asDecimal else {
                 //Short of balances.
@@ -353,6 +401,27 @@ public extension Transaction {
         Log("transaction validate true")
         return true
     }
+
+    private func availableBalance(transactionsInSameBlock: [any Transaction]) -> BK {
+        let dhtAddress = self.makerDhtAddressAsHexString
+        let confirmedBalance = self.book.balance(dhtAddressAsHexString: dhtAddress).asDecimal
+        let sameBlockBalanceDelta = transactionsInSameBlock.reduce(Decimal.zero) { balanceDelta, transaction in
+            balanceDelta + transaction.balanceDelta(for: dhtAddress)
+        }
+        return confirmedBalance + sameBlockBalanceDelta
+    }
+
+    private func balanceDelta(for dhtAddress: OverlayNetworkAddressAsHexString) -> Decimal {
+        var balanceDelta = Decimal.zero
+        if self.withdrawalDhtAddressOnLeft.equal(dhtAddress) {
+            balanceDelta -= self.debitOnLeft.asDecimal
+            balanceDelta -= self.feeForBooker.asDecimal
+        }
+        if self.depositDhtAddressOnRight.equal(dhtAddress) {
+            balanceDelta += self.creditOnRight.asDecimal
+        }
+        return balanceDelta
+    }
     
     /*
      Sign        署名する
@@ -360,13 +429,12 @@ public extension Transaction {
          Base64
          Encrypt(ECDSA 256) makerの公開鍵で暗号
      
-     #あと content 以外も著名対象とする
      */
     mutating func sign(with signer: Signer) throws {
         Log()
-        if let contentAsData = self.claimObject.toJsonString(signer: self.signer, peerSigner: self.peerSigner)?.utf8DecodedData, let contentHashedData = contentAsData.hashedData?.toData, let signature = try signer.sign(contentAsData: contentHashedData) {
+        if let contentAsData = self.canonicalSignaturePayloadData, let contentHashedData = contentAsData.hashedData?.toData, let signature = try signer.sign(contentAsData: contentHashedData) {
             Log("SIGN#--")
-            Log("raw data\(String(describing: self.claimObject.toJsonString(signer: self.signer, peerSigner: self.peerSigner)))")
+            Log("raw data\(String(describing: self.canonicalSignaturePayloadString))")
             Log("data: \(contentAsData.base64String)")
             Log("hashed data: \(contentHashedData.base64String)")
             Log("signature: \(signature.toString)")
@@ -443,6 +511,21 @@ public extension Transaction {
         }
         
         return (false, nil)
+    }
+
+    var isCreditCreation: Bool {
+        self.withdrawalDhtAddressOnLeft.equal(Signer.moneySupplyUnMoverAccount)
+    }
+
+    var isAllowedCreditCreationClaim: Bool {
+        switch self.claim.rawValue {
+        case ClaimOnPay.bookerFee.rawValue,
+             ClaimOnPerson.demandBasicIncome.rawValue,
+             ClaimOnPerson.born.rawValue:
+            return true
+        default:
+            return false
+        }
     }
 
 //    static func == (lhs: any Transaction, rhs: any Transaction) -> Bool {
@@ -591,4 +674,20 @@ public protocol Transaction: Hashable {
     func isMatch<ArgumentA, ArgumentB>(type: TransactionType, claim: ArgumentA?, dhtAddressAsHexString: ArgumentB?) -> Bool
     mutating func send(node: Node, signer: Signer)
     func filter(dhtAddressAsHexString: OverlayNetworkAddressAsHexString) -> (Bool, TransactionMatchType?)
+}
+
+private extension ClaimObject {
+    func canonicalJSONObject(signer: Signer?, peerSigner: Signer?) -> Any? {
+        guard let jsonString = self.toJsonString(signer: signer, peerSigner: peerSigner),
+              let jsonData = jsonString.utf8DecodedData else {
+            return nil
+        }
+        return try? JSONSerialization.jsonObject(with: jsonData, options: [])
+    }
+}
+
+private extension BK {
+    var canonicalDecimalString: String {
+        NSDecimalNumber(decimal: self.asDecimal).stringValue
+    }
 }
